@@ -65,7 +65,6 @@ function submit_and_wait () {
   
   for el in "${names[@]}"; do
     echo -ne "Submitting ${el}... "
-    echo " ${script} ${el}"
     . ${script} ${el} > /dev/null 2>&1 &
     lr=$! # record the process ID
     disown -h $lr # nohup the process
