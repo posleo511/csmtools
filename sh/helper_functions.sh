@@ -91,3 +91,121 @@ function submit_and_wait () {
     return 0
   fi
 }
+
+
+function usage () {
+  echo $@ 1>&2
+  exit 1
+}
+
+function create_hive_table () {
+  local msg="Usage [ -o) <true|false> ] [ -d) <delimiter> ] [ -n) <nullstr> ]
+  [ -f) <storage-format> ] <schema> <tablename> <structure>"
+  local OPTIND
+  local delim=\|
+  local nullstr=
+  local filefmt=TEXTFILE
+  while getopts ":o:d:f:n:" o; do
+    case "${o}" in
+        d) delim=${OPTARG};;
+        f) filefmt=${OPTARG};;
+        n) nullstr=${OPTARG};;
+        o)
+            local overwrite=${OPTARG}
+            choices=( true false )
+            [[ "$( contains_element "${overwrite}" "${choices[@]}" )" != "0" ]] \
+              && usage ${msg}
+            ;;
+        *) 
+            usage ${msg}
+            ;;
+    esac
+  done
+  shift $((OPTIND-1))
+  local schema=$1
+  local tablename=$2
+  shift 2
+  local format="$@"
+  
+  local cmd="CREATE EXTERNAL TABLE IF NOT EXISTS ${schema}.${tablename} (
+      ${format}
+    )
+    ROW FORMAT DELIMITED FIELDS TERMINATED BY '${delim}'
+    NULL DEFINED AS '${nullstr}'
+    STORED AS ${filefmt}"
+  
+  if [[ "${overwrite}" == "true" ]]; then
+    hive -e "DROP TABLE IF EXISTS $1.unipurc"
+  fi 
+  
+  hive -e "${cmd}"
+}
+
+function load_hive_table () {
+  local OPTIND
+  local msg="Usage [ -o) <true|false> ] <schema> <tablename> <inpath>"
+  while getopts ":o:" o; do
+    case "${o}" in
+        o)
+            local overwrite=${OPTARG}
+            choices=( true false )
+            [[ "$( contains_element "${overwrite}" "${choices[@]}" )" != "0" ]] \
+              && usage ${msg}
+            ;;
+        *) 
+            usage ${msg}
+            ;;
+    esac
+  done
+  shift $((OPTIND-1))
+  
+  if [[ "${overwrite}]" == "true" ]]; then
+    local mod=OVERWRITE
+  fi
+  
+  hive -e "
+    LOAD DATA INPATH '$3' 
+    ${mod} INTO TABLE $1.$2"
+}
+
+
+function create_hive_schema () {
+  local msg="Usage [ -o) <true|false> ] <schema> <location>"
+  while getopts ":o:" o; do
+    case "${o}" in
+        o)
+            local overwrite=${OPTARG}
+            choices=( true false )
+            [[ "$( contains_element "${overwrite}" "${choices[@]}" )" != "0" ]] \
+              && usage ${msg}
+            ;;
+        *) 
+            usage ${msg}
+            ;;
+    esac
+  done
+  
+  shift $((OPTIND-1))
+  local schema=$1
+  local location=$2
+  
+  if [[ "${overwrite}" == "true" ]]; then
+    local cmd="
+      DROP SCHEMA IF EXISTS ${schema} CASCADE;
+      
+      CREATE SCHEMA ${schema}
+      LOCATION '${location}'"
+  else
+    local cmd="CREATE SCHEMA IF NOT EXISTS ${schema} LOCATION '${location}'"
+  fi
+    
+  hive -e "${cmd}"
+  
+}
+
+
+
+
+function notify () {
+  mailx -a $3 -s "$2" $1
+}
