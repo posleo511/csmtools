@@ -86,8 +86,8 @@ function submit_and_wait () {
   done
   
   if [[ ${fails} != 0 ]]; then
-    exit 1
+    return 1
   else
-    exit 0
+    return 0
   fi
 }
