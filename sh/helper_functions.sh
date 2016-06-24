@@ -168,8 +168,8 @@ function load_hive_table () {
     ${mod} INTO TABLE $1.$2"
 }
 
-
 function create_hive_schema () {
+  local OPTIND
   local msg="Usage [ -o) <true|false> ] <schema> <location>"
   while getopts ":o:" o; do
     case "${o}" in
