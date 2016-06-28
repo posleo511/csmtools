@@ -105,16 +105,18 @@ function create_hive_table () {
   local delim=\|
   local nullstr=
   local mod=
+  local external=
+  local overwrite=
   local filefmt=TEXTFILE
+  local choices=( true false )
   while getopts ":o:e:d:f:n:" o; do
     case "${o}" in
-        d) local delim=${OPTARG};;
-        f) local filefmt=${OPTARG};;
-        n) local nullstr=${OPTARG};;
-        e) local external=${OPTARG};;
+        d) delim=${OPTARG};;
+        f) filefmt=${OPTARG};;
+        n) nullstr=${OPTARG};;
+        e) external=${OPTARG};;
         o)
-            local overwrite=${OPTARG}
-            local choices=( true false )
+            overwrite=${OPTARG}
             contains_element "${overwrite}" "${choices[@]}"
             [[ "$?" != "0" ]] \
               && usage ${msg}
