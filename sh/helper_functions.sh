@@ -104,16 +104,19 @@ function create_hive_table () {
   local OPTIND
   local delim=\|
   local nullstr=
+  local mod=
   local filefmt=TEXTFILE
-  while getopts ":o:d:f:n:" o; do
+  while getopts ":o:e:d:f:n:" o; do
     case "${o}" in
-        d) delim=${OPTARG};;
-        f) filefmt=${OPTARG};;
-        n) nullstr=${OPTARG};;
+        d) local delim=${OPTARG};;
+        f) local filefmt=${OPTARG};;
+        n) local nullstr=${OPTARG};;
+        e) local external=${OPTARG};;
         o)
             local overwrite=${OPTARG}
-            choices=( true false )
-            [[ "$( contains_element "${overwrite}" "${choices[@]}" )" != "0" ]] \
+            local choices=( true false )
+            contains_element "${overwrite}" "${choices[@]}"
+            [[ "$?" != "0" ]] \
               && usage ${msg}
             ;;
         *) 
@@ -127,7 +130,9 @@ function create_hive_table () {
   shift 2
   local format="$@"
   
-  local cmd="CREATE EXTERNAL TABLE IF NOT EXISTS ${schema}.${tablename} (
+  [[ "${external}" == "true" ]] && mod=EXTERNAL
+  
+  local cmd="CREATE ${mod} TABLE IF NOT EXISTS ${schema}.${tablename} (
       ${format}
     )
     ROW FORMAT DELIMITED FIELDS TERMINATED BY '${delim}'
@@ -135,21 +140,23 @@ function create_hive_table () {
     STORED AS ${filefmt}"
   
   if [[ "${overwrite}" == "true" ]]; then
-    hive -e "DROP TABLE IF EXISTS $1.unipurc"
+    hive -S -e "DROP TABLE IF EXISTS ${schema}.${tablename}"
   fi 
   
-  hive -e "${cmd}"
+  hive -S -e "${cmd}"
 }
 
 function load_hive_table () {
   local OPTIND
+  local mod=
   local msg="Usage [ -o) <true|false> ] <schema> <tablename> <inpath>"
   while getopts ":o:" o; do
     case "${o}" in
         o)
             local overwrite=${OPTARG}
             choices=( true false )
-            [[ "$( contains_element "${overwrite}" "${choices[@]}" )" != "0" ]] \
+            contains_element "${overwrite}" "${choices[@]}"
+            [[ "$?" != "0" ]] \
               && usage ${msg}
             ;;
         *) 
@@ -160,10 +167,10 @@ function load_hive_table () {
   shift $((OPTIND-1))
   
   if [[ "${overwrite}]" == "true" ]]; then
-    local mod=OVERWRITE
+    mod=OVERWRITE
   fi
   
-  hive -e "
+  hive -S -e "
     LOAD DATA INPATH '$3' 
     ${mod} INTO TABLE $1.$2"
 }
@@ -176,7 +183,8 @@ function create_hive_schema () {
         o)
             local overwrite=${OPTARG}
             choices=( true false )
-            [[ "$( contains_element "${overwrite}" "${choices[@]}" )" != "0" ]] \
+            contains_element "${overwrite}" "${choices[@]}"
+            [[ "$?" != "0" ]] \
               && usage ${msg}
             ;;
         *) 
@@ -199,11 +207,9 @@ function create_hive_schema () {
     local cmd="CREATE SCHEMA IF NOT EXISTS ${schema} LOCATION '${location}'"
   fi
     
-  hive -e "${cmd}"
+  hive -S -e "${cmd}"
   
 }
-
-
 
 
 function notify () {
