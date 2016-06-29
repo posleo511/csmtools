@@ -129,9 +129,19 @@ dt_compare <- function(x, y, .names = NULL, names_x = NULL, names_y = NULL,
   if (!is.data.table(x)) data.table::setDT(x)
   if (!is.data.table(y)) data.table::setDT(y)
 
-  writeLines(paste(deparse(substitute(x)), "has", nrow(x), "rows"))
-  writeLines(paste(deparse(substitute(y)), "has", nrow(y), "rows"))
+  tblx <- deparse(substitute(x))
+  tbly <- deparse(substitute(y))
+  writeLines(paste(tblx, "has", nrow(x), "rows"))
+  writeLines(paste(tbly, "has", nrow(y), "rows"))
 
+  dx <- sum(duplicated(x))
+  dy <- sum(duplicated(y))
+  writeLines(paste(tblx, "has", dx, "duplicates!"))
+  writeLines(paste(tbly, "has", dy, "duplicates!"))
+  
+  x <- unique(x)
+  y <- unique(y)
+  
   if (is.null(suffixes)) {
     suffixes <- c(".x", ".y")
   }
@@ -140,12 +150,7 @@ dt_compare <- function(x, y, .names = NULL, names_x = NULL, names_y = NULL,
 
   if (is.defined(.names)) {
     compare.vars <- lapply(suffixes, function(x) paste0(.names, x))
-  } else if (is.defined(names_x, names_y, .all = TRUE)) {
-    compare.vars <- list(
-      paste0(names_x, suffixes[1]),
-      paste0(names_y, suffixes[2])
-    )
-  } else stop("Must specify 'names' or both 'names_x' and 'names_y'...")
+  } else return(comp)
 
   nms <- do.call(paste, c(compare.vars, sep = "_"))
   for (ix in seq(nms)) {
