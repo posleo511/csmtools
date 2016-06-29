@@ -57,3 +57,33 @@ list_flatten <- function (x, use.names = TRUE, classes = "ANY")
 
   return(list(data = y, ind = items))
 }
+
+
+hread <- function(fp, schema, schema_loc) {
+  if (!requireNamespace("data.table", quietly = TRUE)) {
+    stop("`data.table` needed for this function to work. Please install it.", call. = FALSE)
+  }
+
+  if (!requireNamespace("magrittr", quietly = TRUE)) {
+    stop("`magrittr` needed for this function to work. Please install it.", call. = FALSE)
+  } else {
+    # A super crude way to ensure the magrittr pipe works, need to fix once
+    # these functions are included in a package by refrencing properly in the namespace
+    require("magrittr")
+  }
+  
+  fqp <- file.path(schema_loc, fp)
+  fn <- list.files(fqp, full.names = TRUE)
+  rcn <- paste0("cd; cd ", schema_loc, ";
+    hive -S -e 'show columns in ", schema, ".", fp, "'") %>%
+    system(intern = TRUE) %>%
+    gsub(pattern = " ", replacement = "")
+
+  hive_read <- function(x) data.table::fread(paste0("cat ", x, " | tr '\001' '|'"))
+  stack <- lapply(fn, hive_read) %>%
+    data.table::rbindlist()
+
+  data.table::setnames(stack, rcn)
+  
+  return(stack)
+}
