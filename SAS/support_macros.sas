@@ -10,11 +10,11 @@
   DATA _NULL_;
     SET &SASLB..&DSNAME;
     FILE "&OUTNAME..csv" DSD DLM=",";
-    IF _N_ = 1 THEN PUT "&NAME";
+    IF _N_ = 1 THEN PUT "&NAME";  
     PUT (_all_) (&);
   RUN;
   
   /* IMPORTANT: PAWWSORDLESS SSH KEY BRIDGE MUST BE SET UP FOR YOUR USER! */  
-  x "scp &DSNAME..csv &HOST.:&DEST./"
+  x "scp &OUTNAME..csv &HOST.:&DEST./"
 
 %MEND;
