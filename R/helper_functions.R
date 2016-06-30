@@ -1,4 +1,4 @@
-.libPaths(c("/mapr/mapr03r/analytic_users/msmck/usr/local/lib/R", .libPaths())) 
+.libPaths(c("/mapr/mapr03r/analytic_users/msmck/usr/local/lib/R", .libPaths()))
 
 iri_week <- function(x, fmt = "%Y-%m-%d") {
   ceiling((as.numeric(as.Date(x, format = fmt)) + 25568)/7) - 4157
@@ -60,7 +60,7 @@ list_flatten <- function (x, use.names = TRUE, classes = "ANY")
 }
 
 
-hread <- function(fp, schema, schema_loc) {
+hread <- function(fp, schema, schema_loc, ...) {
   if (!requireNamespace("data.table", quietly = TRUE)) {
     stop("`data.table` needed for this function to work. Please install it.", call. = FALSE)
   }
@@ -72,7 +72,7 @@ hread <- function(fp, schema, schema_loc) {
     # these functions are included in a package by refrencing properly in the namespace
     require("magrittr")
   }
-  
+
   fqp <- file.path(schema_loc, fp)
   fn <- list.files(fqp, full.names = TRUE)
   rcn <- paste0("cd; cd ", schema_loc, ";
@@ -80,12 +80,13 @@ hread <- function(fp, schema, schema_loc) {
     system(intern = TRUE) %>%
     gsub(pattern = " ", replacement = "")
 
-  hive_read <- function(x) data.table::fread(paste0("cat ", x, " | tr '\001' '|'"))
+  hive_read <- function(x) data.table::fread(
+      paste0("cat ", x, " | tr '\001' '|' | tr '\\\\N' 'NA' "), sep = "|", ...)
   stack <- lapply(fn, hive_read) %>%
     data.table::rbindlist()
 
   data.table::setnames(stack, rcn)
-  
+
   return(stack)
 }
 
@@ -107,9 +108,9 @@ dt_reduce <- function(DT, FUN, NAME, ...) {
   DT[, (NAME) := Reduce(FUN, .SD), .SDcols = (COLNAMES)]
 }
 
-dt_compare <- function(x, y, .names = NULL, names_x = NULL, names_y = NULL, 
+dt_compare <- function(x, y, .names = NULL, names_x = NULL, names_y = NULL,
   all = TRUE, suffixes = NULL, FUN = `-`, .summary = TRUE, ...){
-  
+
   if (!requireNamespace("data.table", quietly = TRUE)) {
     stop("`data.table` needed for this function to work. Please install it.", call. = FALSE)
   } else {
@@ -131,17 +132,19 @@ dt_compare <- function(x, y, .names = NULL, names_x = NULL, names_y = NULL,
 
   tblx <- deparse(substitute(x))
   tbly <- deparse(substitute(y))
-  writeLines(paste(tblx, "has", nrow(x), "rows"))
-  writeLines(paste(tbly, "has", nrow(y), "rows"))
+  nrx <- nrow(x)
+  nry <- nrow(y)
+  writeLines(paste(tblx, "has", nrx, "rows"))
+  writeLines(paste(tbly, "has", nry, "rows"))
 
   dx <- sum(duplicated(x))
   dy <- sum(duplicated(y))
-  writeLines(paste(tblx, "has", dx, "duplicates!"))
-  writeLines(paste(tbly, "has", dy, "duplicates!"))
-  
+  writeLines(paste(tblx, "has", dx, "duplicates! Rows:", nrx - dx))
+  writeLines(paste(tbly, "has", dy, "duplicates! Rows:", nry - dy))
+
   x <- unique(x)
   y <- unique(y)
-  
+
   if (is.null(suffixes)) {
     suffixes <- c(".x", ".y")
   }
