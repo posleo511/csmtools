@@ -81,7 +81,7 @@ hread <- function(fp, schema, schema_loc, ...) {
     gsub(pattern = " ", replacement = "")
 
   hive_read <- function(x) data.table::fread(
-      paste0("cat ", x, " | tr '\001' '|' | tr '\\\\N' 'NA' "), sep = "|", ...)
+      paste0("cat ", x, " | tr '\001' '|'"), sep = "|", ...)
   stack <- lapply(fn, hive_read) %>%
     data.table::rbindlist()
 
@@ -103,7 +103,7 @@ dt_reduce <- function(DT, FUN, NAME, ...) {
     # these functions are included in a package by refrencing properly in the namespace
     require("data.table")
   }
-  if (!is.data.table(DT)) setDT(DT)
+  if (!is.data.table(DT)) stop("'DT' is not a data.table!")
   COLNAMES <- c(...)
   DT[, (NAME) := Reduce(FUN, .SD), .SDcols = (COLNAMES)]
 }
