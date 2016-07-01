@@ -75,17 +75,26 @@ hread <- function(fp, schema, schema_loc, ...) {
 
   fqp <- file.path(schema_loc, fp)
   fn <- list.files(fqp, full.names = TRUE)
-  rcn <- paste0("cd; cd ", schema_loc, ";
-    hive -S -e 'show columns in ", schema, ".", fp, "'") %>%
+  dt_types <- paste0("cd; cd ", schema_loc, ";
+    hive -S -e 'describe ", schema, ".", fp, "'") %>%
     system(intern = TRUE) %>%
-    gsub(pattern = " ", replacement = "")
-
-  hive_read <- function(x) data.table::fread(
-      paste0("cat ", x, " | tr '\001' '|'"), sep = "|", ...)
-  stack <- lapply(fn, hive_read) %>%
+    gsub(pattern = " ", replacement = "") %>%
+    gsub(pattern = "\t$", replacement = "") %>%
+    gsub(pattern = "\t", replacement = "|") %>%
+    strsplit(split = "\\|") %>%
+    lapply(FUN = as.list) %>%
     data.table::rbindlist()
 
-  data.table::setnames(stack, rcn)
+  setnames(dt_types, c("name", "type"))
+  dt_types[grepl("int|decimal|double|float", dt_types$type, ignore.case = TRUE), type := "numeric"]
+  dt_types[grepl("string|char", dt_types$type, ignore.case = TRUE), type := "character"]
+  dt_types[grepl("time|date", dt_types$type, ignore.case = TRUE), type := "date"]
+
+  hive_read <- function(x) data.table::fread(
+      paste0("cat ", x, " | tr '\001' '|'"), sep = "|", 
+      colClasses = dt_types$type, col.names = dt_types$name, ...)
+  stack <- lapply(fn, hive_read) %>%
+    data.table::rbindlist()
 
   return(stack)
 }
