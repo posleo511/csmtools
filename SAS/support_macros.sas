@@ -1,6 +1,7 @@
 %MACRO DLM_DUMP(DSNAME, SASLB, OUTNAME, DEST, HOST);
 
   %IF %sysfunc(exist(&SASLB..&DSNAME)) %THEN %DO;
+
     PROC SQL;
     SELECT CATS(LOWCASE(NAME)) INTO :NAME 
     SEPARATED BY ',' 
@@ -18,6 +19,7 @@
     /* IMPORTANT: PAWWSORDLESS SSH KEY BRIDGE MUST BE SET UP FOR YOUR USER! */  
     x "scp &OUTNAME..csv &HOST.:&DEST./"
   %END;
+
   %ELSE %DO;
     %PUT "USER_DERROR: The data set &SASLB..&DSNAME does not exist!";
   %END;
