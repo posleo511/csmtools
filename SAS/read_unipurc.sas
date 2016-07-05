@@ -32,27 +32,28 @@
     INFILE DUMMY FILEVAR = FILEPATH LENGTH=RECLEN END=DONE DSD DLM = "|" MISSOVER;
     DO WHILE(NOT DONE);
       INPUT 
+        PANID
         UPC
         WEEK
         MINUTE
         STORE
-        SYSTEM
-        GENERATION
-        VENDOR
-        ITEM
-        COUPON_ORG
-        COUPON_FACE_VALUE
-        WEEK_OFFSET
+        SYS
+        GEN
+        VEN
+        ITE
+        COUP_ORG
+        COUP_FCVAL
+        OFFSET
         SOURCE
         PANSTORE
         OOH
         FSP
         MOP
         DEAL
-        FEATURE_CODE
-        DISPLAY_CODE
-        PERCENT_OFF
-        COUPON_VALUE
+        FEA
+        DIS
+        PRCT_OFF
+        COUP_VAL
         CENTS
         UNITS;
       OUTPUT;

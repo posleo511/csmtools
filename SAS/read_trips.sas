@@ -32,10 +32,10 @@
     INFILE DUMMY FILEVAR = FILEPATH LENGTH=RECLEN END=DONE DSD DLM = "|" MISSOVER;
     DO WHILE(NOT DONE);
       INPUT 
-        PANELIST
+        PANID
         STORE
         WEEK
-        WEEK_OFFSET
+        OFFSET
         MINUTE
         DATE1
         CENTS998
@@ -46,5 +46,3 @@
   RUN;
 
 %MEND READ_TRIPS;
-
-
