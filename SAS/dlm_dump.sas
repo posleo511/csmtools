@@ -1,0 +1,27 @@
+%MACRO DLM_DUMP(DSNAME, SASLB, OUTNAME, DEST, HOST);
+
+  %IF %sysfunc(exist(&SASLB..&DSNAME)) %THEN %DO;
+
+    PROC SQL;
+    SELECT CATS(LOWCASE(NAME)) INTO :NAME 
+    SEPARATED BY ',' 
+    FROM DICTIONARY.COLUMNS 
+    WHERE UPCASE(LIBNAME)=UPCASE("&SASLB.") AND UPCASE(MEMNAME)=UPCASE("&DSNAME");
+    QUIT;
+
+    DATA _NULL_;
+      SET &SASLB..&DSNAME;
+      FILE "&OUTNAME..csv" DSD DLM=",";
+      IF _N_ = 1 THEN PUT "&NAME";  
+      PUT (_all_) (&);
+    RUN;
+    
+    /* IMPORTANT: PAWWSORDLESS SSH KEY BRIDGE MUST BE SET UP FOR YOUR USER! */  
+    x "scp &OUTNAME..csv &HOST.:&DEST./"
+  %END;
+
+  %ELSE %DO;
+    %PUT "USER_DERROR: The data set &SASLB..&DSNAME does not exist!";
+  %END;
+
+%MEND;
