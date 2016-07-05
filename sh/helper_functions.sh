@@ -59,7 +59,8 @@ function usage () {
 
 function submit_and_wait () {
   script=$1
-  shift
+  wait_time=$2
+  shift 2
   names=( $@ )
   echo -e "\n== Submissions ============================ $( date +%H:%M:%S ) ==\n"
   
@@ -70,6 +71,7 @@ function submit_and_wait () {
     disown -h $lr # nohup the process
     pids+=( ${lr} ) # add to list of process ids
     echo "Done."
+    sleep ${wait_time}
   done
 
   echo -e "\n== Output ================================= $( date +%H:%M:%S ) ==\n"
