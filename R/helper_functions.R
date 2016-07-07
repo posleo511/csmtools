@@ -75,6 +75,7 @@ hread <- function(fp, schema, schema_loc, ...) {
 
   fqp <- file.path(schema_loc, fp)
   fn <- list.files(fqp, full.names = TRUE)
+  writeLines(paste("Found", length(fn), "files... fread may or may not print for all"))
   dt_types <- paste0("cd; cd ", schema_loc, ";
     hive -S -e 'describe ", schema, ".", fp, "'") %>%
     system(intern = TRUE) %>%
@@ -91,7 +92,7 @@ hread <- function(fp, schema, schema_loc, ...) {
   dt_types[grepl("time|date", dt_types$type, ignore.case = TRUE), type := "date"]
 
   hive_read <- function(x) data.table::fread(
-      paste0("cat ", x, " | tr '\001' '|'"), sep = "|", 
+      paste0("cat ", x, " | tr '\001' '|'"), sep = "|",  showProgress = TRUE,
       colClasses = dt_types$type, col.names = dt_types$name, ...)
   stack <- lapply(fn, hive_read) %>%
     data.table::rbindlist()
@@ -175,3 +176,82 @@ dt_compare <- function(x, y, .names = NULL, names_x = NULL, names_y = NULL,
   print(comp[, summary(.SD), .SDcols = (nms)])
   return(comp)
 }
+
+
+sas_hive_compare <- function(dsname, schema, schema_loc, compare_loc, 
+  checknames = NULL, charnames = NULL, numnames = NULL, precision = 2) {
+
+  if (!requireNamespace("data.table", quietly = TRUE)) {
+    stop("`data.table` needed for this function to work. Please install it.", call. = FALSE)
+  } else {
+    # A super crude way to ensure the data.table .() works, need to fix once
+    # these functions are included in a package by refrencing properly in the namespace
+    require("data.table")
+  }
+
+  if (!requireNamespace("magrittr", quietly = TRUE)) {
+    stop("`magrittr` needed for this function to work. Please install it.", call. = FALSE)
+  } else {
+    # A super crude way to ensure the magrittr pipe works, need to fix once
+    # these functions are included in a package by refrencing properly in the namespace
+    require("magrittr")
+  }
+  
+  chk_hv <- hread(tolower(dsname), schema, schema_loc,
+                  na.strings = c("", "NA", "\\N"))
+                  
+  print(head(chk_hv))
+  
+  sfp <- file.path(compare_loc, paste0(dsname, ".csv"))
+  sas_head <- colnames(fread(sfp, head = TRUE, nrow = 0))
+  hive_class <- lapply(chk_hv, class)
+  print(unlist(hive_class))
+
+  sas_class <- hive_class[match(sas_head, names(hive_class))]
+  print(unlist(sas_class))
+  
+  chk_sas <- fread(sfp, na.strings = c("NA", "", "."), colClasses = unlist(sas_class, use.names = FALSE))
+
+  print(head(chk_sas))
+  
+  hcn <- colnames(chk_hv)
+  scn <- colnames(chk_sas)
+
+  if (!is.null(checknames)) {
+    chk_sas[, (checknames) := lapply(.SD, round, digits = precision), .SDcols = checknames]
+    chk_hv[, (checknames) := lapply(.SD, round, digits = precision), .SDcols = checknames]
+  }
+  
+  if (!is.null(charnames)) {
+    chk_sas[, (charnames) := lapply(.SD, as.character), .SDcols = charnames]
+    chk_hv[, (charnames) := lapply(.SD, as.character), .SDcols = charnames]
+  }
+  
+   if (!is.null(numnames)) {
+    chk_sas[, (numnames) := lapply(.SD, as.character), .SDcols = numnames]
+    chk_hv[, (numnames) := lapply(.SD, as.character), .SDcols = numnames]
+  }
+
+  shared <- unique(scn[scn %in% hcn], hcn[hcn %in% scn])
+  exclude <- c(scn[!scn %in% hcn], hcn[!hcn %in% scn])
+
+  if (is.null(checknames)) {
+    res <- dt_compare(
+      chk_hv[, shared, with = FALSE],
+      chk_sas[, shared, with = FALSE],
+      by = shared,
+      suffixes = c(".hv", ".sas"))
+  } else {
+    res <- dt_compare(
+      chk_hv[, shared, with = FALSE],
+      chk_sas[, shared, with = FALSE],
+      by = shared[!shared %in% checknames],
+      .names = checknames,
+      suffixes = c(".hv", ".sas"))
+  }
+  writeLines(paste("Result set has", nrow(res), "rows"))
+  return(res)
+}
+
+
+
