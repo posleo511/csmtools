@@ -179,7 +179,8 @@ dt_compare <- function(x, y, .names = NULL, names_x = NULL, names_y = NULL,
 
 
 sas_hive_compare <- function(dsname, schema, schema_loc, compare_loc, 
-  checknames = NULL, charnames = NULL, numnames = NULL, precision = 2) {
+  checknames = NULL, charnames = NULL, numnames = NULL, precision = 2, 
+  change = NULL, ...) {
 
   if (!requireNamespace("data.table", quietly = TRUE)) {
     stop("`data.table` needed for this function to work. Please install it.", call. = FALSE)
@@ -208,11 +209,11 @@ sas_hive_compare <- function(dsname, schema, schema_loc, compare_loc,
   print(unlist(hive_class))
 
   sas_class <- hive_class[match(sas_head, names(hive_class))]
-  print(unlist(sas_class))
   
-  chk_sas <- fread(sfp, na.strings = c("NA", "", "."), colClasses = unlist(sas_class, use.names = FALSE))
+  chk_sas <- fread(sfp, na.strings = c("NA", "", "."), colClasses = unlist(sas_class))
 
   print(head(chk_sas))
+  print(unlist(sas_class))
   
   hcn <- colnames(chk_hv)
   scn <- colnames(chk_sas)
@@ -228,26 +229,40 @@ sas_hive_compare <- function(dsname, schema, schema_loc, compare_loc,
   }
   
    if (!is.null(numnames)) {
-    chk_sas[, (numnames) := lapply(.SD, as.character), .SDcols = numnames]
-    chk_hv[, (numnames) := lapply(.SD, as.character), .SDcols = numnames]
+    chk_sas[, (numnames) := lapply(.SD, as.numeric), .SDcols = numnames]
+    chk_hv[, (numnames) := lapply(.SD, as.numeric), .SDcols = numnames]
   }
 
   shared <- unique(scn[scn %in% hcn], hcn[hcn %in% scn])
-  exclude <- c(scn[!scn %in% hcn], hcn[!hcn %in% scn])
+  exclude_sas <- paste0("sas.", scn[!scn %in% hcn])
+  exclude_hive <- paste0("hive.", hcn[!hcn %in% scn])
 
+  nh <- length(hcn[!hcn %in% scn])
+  ns <- length(scn[!scn %in% hcn])
+  if (ns > 0 & nh > 0) {
+    writeLines(paste("Excluding:", paste0(c(exclude_sas, exclude_hive), collapse = ", ")))
+  } else if (ns > 0 & nh == 0) {
+    writeLines(paste("Excluding:", paste0(exclude_sas, collapse = ", ")))
+  } else if (ns == 0 & nh > 0) {
+    writeLines(paste("Excluding:", paste0(exclude_hive, collapse = ", ")))
+  }
+  
   if (is.null(checknames)) {
+    writeLines(paste("Merging on:", paste0(shared, collapse = ", ")))
+  
     res <- dt_compare(
       chk_hv[, shared, with = FALSE],
       chk_sas[, shared, with = FALSE],
       by = shared,
-      suffixes = c(".hv", ".sas"))
+      suffixes = c(".hv", ".sas"), ...)
   } else {
+    writeLines(paste("Merging on:", paste0( shared[!shared %in% checknames], collapse = ", ")))
     res <- dt_compare(
       chk_hv[, shared, with = FALSE],
       chk_sas[, shared, with = FALSE],
       by = shared[!shared %in% checknames],
       .names = checknames,
-      suffixes = c(".hv", ".sas"))
+      suffixes = c(".hv", ".sas"), ...)
   }
   writeLines(paste("Result set has", nrow(res), "rows"))
   return(res)
