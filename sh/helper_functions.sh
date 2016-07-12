@@ -102,20 +102,23 @@ function usage () {
 
 function create_hive_table () {
   local msg="Usage [ -o) <true|false> ] [ -d) <delimiter> ] [ -n) <nullstr> ]
-  [ -f) <storage-format> ] <schema> <tablename> <structure>"
+  [ -f) <storage-format> ] [ -h) <num-header-rows>] <schema> <tablename> <structure>"
   local OPTIND
   local delim=\|
   local nullstr=
   local mod=
+  local header=0
+  local headmod=""
   local external=
   local overwrite=
   local filefmt=TEXTFILE
   local choices=( true false )
-  while getopts ":o:e:d:f:n:" o; do
+  while getopts ":o:e:d:f:n:h:" o; do
     case "${o}" in
         d) delim=${OPTARG};;
         f) filefmt=${OPTARG};;
         n) nullstr=${OPTARG};;
+        h) header=${OPTARG};;
         e) external=${OPTARG};;
         o)
             overwrite=${OPTARG}
@@ -135,13 +138,15 @@ function create_hive_table () {
   local format="$@"
   
   [[ "${external}" == "true" ]] && mod=EXTERNAL
+  [[ ${header} > 0 ]] && headmod="tblproperties ('skip.header.line.count'='${header}')" 
   
   local cmd="CREATE ${mod} TABLE IF NOT EXISTS ${schema}.${tablename} (
       ${format}
     )
     ROW FORMAT DELIMITED FIELDS TERMINATED BY '${delim}'
     NULL DEFINED AS '${nullstr}'
-    STORED AS ${filefmt}"
+    STORED AS ${filefmt}
+    ${headmod}"
   
   if [[ "${overwrite}" == "true" ]]; then
     hive -S -e "DROP TABLE IF EXISTS ${schema}.${tablename}"
