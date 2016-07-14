@@ -220,7 +220,15 @@ function create_hive_schema () {
   
 }
 
-
 function notify () {
   mailx -a $3 -s "$2" $1
 }
+
+function name_map () {
+  awk -F"|" '$2 != "" { print "s/"$2"/"$1"/Ig" }' $1 | sed -i -f - $2
+}
+
+function header_map () {
+  awk -F"|" '$2 != "" { print "1 s/"$2"/"$1"/Ig" }' $1 | sed -i -f - $2
+}
+  
