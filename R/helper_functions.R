@@ -12,6 +12,8 @@ coalesce <- function(...) {
     }, list(...))
 }
 
+flound <- function(x, digits = 2) floor(x * 10^digits) / 10^digits
+
 gg_color_hue <- function(n) {
   stopifnot(n %% floor(n) == 0 & n > 0)
   hues <- seq(15, 375, length = n + 1)
@@ -75,6 +77,7 @@ hread <- function(fp, schema, schema_loc, ...) {
 
   fqp <- file.path(schema_loc, fp)
   fn <- list.files(fqp, full.names = TRUE)
+  if (length(fn) == 0) stop("No files found!")
   writeLines(paste("Found", length(fn), "files... fread may or may not print for all"))
   dt_types <- paste0("cd; cd ", schema_loc, ";
     hive -S -e 'describe ", schema, ".", fp, "'") %>%
