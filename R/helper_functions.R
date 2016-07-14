@@ -211,9 +211,11 @@ sas_hive_compare <- function(dsname, schema, schema_loc, compare_loc,
   hive_class <- lapply(chk_hv, class)
   print(unlist(hive_class))
 
-  sas_class <- hive_class[match(sas_head, names(hive_class))]
+  sas_class <- unlist(hive_class[match(sas_head, names(hive_class))])
   
-  chk_sas <- fread(sfp, na.strings = c("NA", "", "."), colClasses = unlist(sas_class))
+  cclist <- sas_class[!duplicated(names(sas_class))]
+  chk_sas <- fread(sfp, na.strings = c("NA", "", "."), colClasses = cclist)
+  chk_sas <- chk_sas[, !duplicated(colnames(chk_sas)), with = FALSE]
 
   print(head(chk_sas))
   print(unlist(sas_class))
@@ -252,10 +254,12 @@ sas_hive_compare <- function(dsname, schema, schema_loc, compare_loc,
   
   if (is.null(checknames)) {
     writeLines(paste("Merging on:", paste0(shared, collapse = ", ")))
-  
+
+    mh <- chk_hv[, shared, with = FALSE]
+    ms <- chk_sas[, shared, with = FALSE]
+    
     res <- dt_compare(
-      chk_hv[, shared, with = FALSE],
-      chk_sas[, shared, with = FALSE],
+      mh, ms,
       by = shared,
       suffixes = c(".hv", ".sas"), ...)
   } else {
