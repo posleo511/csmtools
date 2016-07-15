@@ -229,6 +229,6 @@ function name_map () {
 }
 
 function header_map () {
-  awk -F"|" '$2 != "" { print "1 s/"$2"/"$1"/Ig" }' $1 | sed -i -f - $2
+  awk -F"|" '$2 != "" { print "1 s/"$2",/"$1",/Ig" }' $1 | sed -i -f - $2
 }
   
