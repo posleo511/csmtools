@@ -76,9 +76,12 @@ hread <- function(fp, schema, schema_loc, ...) {
   }
 
   fqp <- file.path(schema_loc, fp)
-  fn <- list.files(fqp, full.names = TRUE)
+  fn_all <- list.files(fqp, full.names = TRUE)
+  info <- file.info(fn_all)
+  fn <- rownames(info[info$size > 0, ])
   if (length(fn) == 0) stop("No files found!")
-  writeLines(paste("Found", length(fn), "files... fread may or may not print for all"))
+  writeLines(paste("Found", length(fn), "files and", nrow(info) - length(fn), "empty files."))
+  writeLines("Finding column information from Hive's metastore...")
   dt_types <- paste0("cd; cd ", schema_loc, ";
     hive -S -e 'describe ", schema, ".", fp, "'") %>%
     system(intern = TRUE) %>%
@@ -93,12 +96,19 @@ hread <- function(fp, schema, schema_loc, ...) {
   dt_types[grepl("int|decimal|double|float", dt_types$type, ignore.case = TRUE), type := "numeric"]
   dt_types[grepl("string|char", dt_types$type, ignore.case = TRUE), type := "character"]
   dt_types[grepl("time|date", dt_types$type, ignore.case = TRUE), type := "date"]
-
+  
+  writeLines("Performing read...")
   hive_read <- function(x) data.table::fread(
       paste0("cat ", x, " | tr '\001' '|'"), sep = "|",  showProgress = TRUE,
       colClasses = dt_types$type, col.names = dt_types$name, ...)
-  stack <- lapply(fn, hive_read) %>%
-    data.table::rbindlist()
+      
+  hold <- list()
+  for (k in seq_along(fn)) {
+    hold[[k]] <- hive_read(fn[k])
+    writeLines(paste("  Read", nrow(hold[[k]]), "lines from file", k))
+  }
+  stack <- data.table::rbindlist(hold)
+  writeLines(paste0("Read a total of ", nrow(stack), " lines."))
 
   return(stack)
 }
@@ -183,7 +193,7 @@ dt_compare <- function(x, y, .names = NULL, names_x = NULL, names_y = NULL,
 
 sas_hive_compare <- function(dsname, schema, schema_loc, compare_loc, 
   checknames = NULL, charnames = NULL, numnames = NULL, precision = 2, 
-  change = NULL, ...) {
+  change = NULL, sas_sep = ",", ...) {
 
   if (!requireNamespace("data.table", quietly = TRUE)) {
     stop("`data.table` needed for this function to work. Please install it.", call. = FALSE)
@@ -214,8 +224,8 @@ sas_hive_compare <- function(dsname, schema, schema_loc, compare_loc,
   sas_class <- unlist(hive_class[match(sas_head, names(hive_class))])
   
   cclist <- sas_class[!duplicated(names(sas_class))]
-  chk_sas <- fread(sfp, na.strings = c("NA", "", "."), colClasses = cclist)
-  chk_sas <- chk_sas[, !duplicated(colnames(chk_sas)), with = FALSE]
+  chk_sas <- fread(sfp, na.strings = c("NA", "", "."), colClasses = cclist, sep = sas_sep)
+  chk_sas <- chk_sas[, colnames(chk_sas)[!duplicated(colnames(chk_sas))], with = FALSE]
 
   print(head(chk_sas))
   print(unlist(sas_class))
