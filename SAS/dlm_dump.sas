@@ -7,7 +7,7 @@
       CATS(LOWCASE(NAME)) length=1000,
       CATS(LOWCASE(TYPE)) length=1000 
     INTO
-      :NAME SEPARATED BY ',',
+      :NAME SEPARATED BY '^',
       :TYPE SEPARATED BY ',' 
     FROM DICTIONARY.COLUMNS 
     WHERE UPCASE(LIBNAME)=UPCASE("&SASLB.") AND UPCASE(MEMNAME)=UPCASE("&DSNAME");
@@ -15,7 +15,7 @@
     
     DATA _NULL_;
       SET &SASLB..&DSNAME;
-      FILE "&OUTNAME..csv" DSD DLM=",";
+      FILE "&OUTNAME..csv" DSD DLM="^";
       IF _N_ = 1 THEN PUT "&NAME";  
       PUT (_all_) (&);
     RUN;
@@ -37,6 +37,21 @@
       END;
     RUN;
     
+    DATA RSETUP;
+      MODIF = 'mo';
+      DELIM = ',';
+      NCOLS = COUNTW("&NAME", DELIM, MODIF);
+      DO I=1 TO NCOLS;
+        nm = SCAN("&NAME", I, DELIM, MODIF);
+        tp = SCAN("&TYPE", I, DELIM, MODIF);
+        IF UPCASE(TP) = 'NUM' THEN TYP = "numeric";
+        ELSE IF UPCASE(TP) = 'CHAR' THEN TYP = 'character';
+        ELSE TYP = 'character';
+        FMT = DEQUOTE(STRIP(NM) ||'|'|| STRIP(TYP));
+        OUTPUT;
+      END;
+    RUN;
+    
     PROC PRINT DATA = SETUP; RUN;
 
     DATA _NULL_;
@@ -45,9 +60,16 @@
       PUT (_ALL_) (&);
     RUN;
     
+    DATA _NULL_;
+      SET RSETUP (KEEP = FMT);
+      FILE "&OUTNAME..Rmeta" DLM = "|";
+      PUT (_ALL_) (&);
+    RUN;
+    
     /* IMPORTANT: PAWWSORDLESS SSH KEY BRIDGE MUST BE SET UP FOR YOUR USER! */  
     x "scp &OUTNAME..csv &HOST.:&DEST./";
     x "scp &OUTNAME..meta &HOST.:&DEST./";
+    x "scp &OUTNAME..Rmeta &HOST.:&DEST./";
   %END;
 
   %ELSE %DO;
