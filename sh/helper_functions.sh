@@ -48,9 +48,32 @@ function loud_exit_code () {
 }
 
 function read_xml () {
-  grep -oP "(?<=$1>)[^<]+" $2
+  local usage="Usage: read_xml '<xml-id>' <xml-file>"
+  if [[ $# -lt 2 ]]; then
+    echo "Invalid number of parameters passed!"
+    echo $usage
+    return 1
+  fi
+   
+  if [[ "$1" == "" ]]; then
+    echo "No xml-id specified!"
+    return 1
+  fi
+  
+  if [[ "$2" == "" ]]; then
+    echo "No xml-file specified!"
+    return 1
+  fi
+  
+  local value=$( grep -oP "(?<=$1>)[^<]+" $2 )
+  
+  if [[ -z "${value}" ]]; then
+    echo "No value for that xml-id found!"
+    return 1
+  else
+    echo $value
+  fi
 }
-
 
 function usage () {
   echo "Incorrect command line parameter usage! Consult the help file."
@@ -60,13 +83,14 @@ function usage () {
 function submit_and_wait () {
   script=$1
   wait_time=$2
-  shift 2
+  rs=$3
+  shift 3
   names=( $@ )
   echo -e "\n== Submissions ============================ $( date +%H:%M:%S ) ==\n"
   
   for el in "${names[@]}"; do
     echo -ne "Submitting ${el}... "
-    . ${script} ${el} > /dev/null 2>&1 &
+    bash ${script} -t ${rs} -w ${el} > /dev/null 2>&1 &
     lr=$! # record the process ID
     disown -h $lr # nohup the process
     pids+=( ${lr} ) # add to list of process ids
@@ -95,10 +119,10 @@ function submit_and_wait () {
 }
 
 
-function usage () {
-  echo $@ 1>&2
-  exit 1
-}
+# function usage () {
+  # echo $@ 1>&2
+  # exit 1
+# }
 
 function create_hive_table () {
   local msg="Usage [ -o) <true|false> ] [ -d) <delimiter> ] [ -n) <nullstr> ]
@@ -220,6 +244,33 @@ function create_hive_schema () {
   
 }
 
+function drop_hive_schema () {
+  local OPTIND
+  local msg="Usage [ -c) <true|false> ] <schema>"
+  while getopts ":c:" o; do
+    case "${o}" in
+        c)
+            local cascade=${OPTARG}
+            choices=( true false )
+            contains_element "${cascade}" "${choices[@]}"
+            [[ "$?" != "0" ]] \
+              && usage ${msg}
+            ;;
+        *) 
+            usage ${msg}
+            ;;
+    esac
+  done
+  
+  shift $((OPTIND-1))
+  local schema=$1
+  if [[ "${cascade}" == "true" ]]; then
+    hive -S -e "DROP SCHEMA ${schema} CASCADE" 1>/dev/null
+  else
+    hive -S -e "DROP SCHEMA ${schema}" 1>/dev/null
+  fi
+}
+
 function notify () {
   mailx -a $3 -s "$2" $1
 }
@@ -231,4 +282,20 @@ function name_map () {
 function header_map () {
   awk -F"|" '$2 != "" { print "1 s/"$2",/"$1",/Ig" }' $1 | sed -i -f - $2
 }
+
+export -f contains_element
+export -f drop_hive_schema
+export -f convertsecs
+export -f log_resolution
+export -f switch_logs
+export -f loud_exit_code
+export -f read_xml
+export -f usage
+export -f submit_and_wait
+export -f create_hive_table
+export -f load_hive_table
+export -f create_hive_schema
+export -f notify
+export -f name_map
+export -f header_map
   

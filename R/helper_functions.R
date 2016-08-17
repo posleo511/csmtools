@@ -65,6 +65,8 @@ list_flatten <- function (x, use.names = TRUE, classes = "ANY")
 hread <- function(fp, schema, schema_loc, ...) {
   if (!requireNamespace("data.table", quietly = TRUE)) {
     stop("`data.table` needed for this function to work. Please install it.", call. = FALSE)
+  } else {
+    require("data.table")
   }
 
   if (!requireNamespace("magrittr", quietly = TRUE)) {
@@ -96,18 +98,14 @@ hread <- function(fp, schema, schema_loc, ...) {
   dt_types[grepl("int|decimal|double|float", dt_types$type, ignore.case = TRUE), type := "numeric"]
   dt_types[grepl("string|char", dt_types$type, ignore.case = TRUE), type := "character"]
   dt_types[grepl("time|date", dt_types$type, ignore.case = TRUE), type := "date"]
-  
+
   writeLines("Performing read...")
   hive_read <- function(x) data.table::fread(
       paste0("cat ", x, " | tr '\001' '|'"), sep = "|",  showProgress = TRUE,
-      colClasses = dt_types$type, col.names = dt_types$name, ...)
-      
-  hold <- list()
-  for (k in seq_along(fn)) {
-    hold[[k]] <- hive_read(fn[k])
-    writeLines(paste("  Read", nrow(hold[[k]]), "lines from file", k))
-  }
-  stack <- data.table::rbindlist(hold)
+      colClasses = dt_types$type, col.names = dt_types$name, na.strings = c("\\N", "NA", ""), ...)
+
+  stack <- lapply(fn, hive_read) %>%
+             data.table::rbindlist()
   writeLines(paste0("Read a total of ", nrow(stack), " lines."))
 
   return(stack)
@@ -131,8 +129,8 @@ dt_reduce <- function(DT, FUN, NAME, ...) {
   DT[, (NAME) := Reduce(FUN, .SD), .SDcols = (COLNAMES)]
 }
 
-dt_compare <- function(x, y, .names = NULL, names_x = NULL, names_y = NULL,
-  all = TRUE, suffixes = NULL, FUN = `-`, .summary = TRUE, ...){
+dt_compare <- function(x, y, .names = NULL, all = TRUE, suffixes = NULL,
+  FUN = `-`, .summary = TRUE, precision = NULL, ...){
 
   if (!requireNamespace("data.table", quietly = TRUE)) {
     stop("`data.table` needed for this function to work. Please install it.", call. = FALSE)
@@ -160,6 +158,17 @@ dt_compare <- function(x, y, .names = NULL, names_x = NULL, names_y = NULL,
   writeLines(paste(tblx, "has", nrx, "rows"))
   writeLines(paste(tbly, "has", nry, "rows"))
 
+  xkey <- key(x)
+  ykey <- key(y)
+  if (!is.null(xkey)) {
+    writeLines("Found DT keys for x, removing...")
+    setkeyv(x, NULL)
+  }
+  if (!is.null(ykey)) {
+    writeLines("Found DT keys for y, removing...")
+    setkeyv(y, NULL)
+  }
+
   dx <- sum(duplicated(x))
   dy <- sum(duplicated(y))
   writeLines(paste(tblx, "has", dx, "duplicates! Rows:", nrx - dx))
@@ -170,6 +179,18 @@ dt_compare <- function(x, y, .names = NULL, names_x = NULL, names_y = NULL,
 
   if (is.null(suffixes)) {
     suffixes <- c(".x", ".y")
+  }
+  
+  if (!is.null(.names)) {
+    if (any(! .names %in% c(colnames(x), colnames(y)))) {
+      stop("Invalid '.names' choice! Not present in one or more sets.")
+    }
+    if (!is.null(precision)) {
+      writeLines(paste("Precision defined, rounding .names to", precision, "places"))
+      x[, (.names) := lapply(.SD, round, digits = precision), .SDcols = .names]
+      y[, (.names) := lapply(.SD, round, digits = precision), .SDcols = .names]
+    }
+    
   }
 
   comp <- merge(x, y, all = all, suffixes = suffixes, ...)
@@ -187,13 +208,14 @@ dt_compare <- function(x, y, .names = NULL, names_x = NULL, names_y = NULL,
   }
 
   print(comp[, summary(.SD), .SDcols = (nms)])
+  
   return(comp)
 }
 
 
-sas_hive_compare <- function(dsname, schema, schema_loc, compare_loc, 
-  checknames = NULL, charnames = NULL, numnames = NULL, precision = 2, 
-  change = NULL, sas_sep = ",", ...) {
+sas_hive_compare <- function(dsname, schema, schema_loc, compare_loc,
+  checknames = NULL, charnames = NULL, numnames = NULL, precision = 2,
+  change = NULL, dropnames = NULL, sas_sep = ",", ...) {
 
   if (!requireNamespace("data.table", quietly = TRUE)) {
     stop("`data.table` needed for this function to work. Please install it.", call. = FALSE)
@@ -210,50 +232,63 @@ sas_hive_compare <- function(dsname, schema, schema_loc, compare_loc,
     # these functions are included in a package by refrencing properly in the namespace
     require("magrittr")
   }
-  
+
   chk_hv <- hread(tolower(dsname), schema, schema_loc,
                   na.strings = c("", "NA", "\\N"))
-                  
+
   print(head(chk_hv))
-  
-  sfp <- file.path(compare_loc, paste0(dsname, ".csv"))
+
+  sfp <- file.path(compare_loc, paste0(dsname, ".dat"))
   sas_head <- colnames(fread(sfp, head = TRUE, nrow = 0))
   hive_class <- lapply(chk_hv, class)
   print(unlist(hive_class))
 
   sas_class <- unlist(hive_class[match(sas_head, names(hive_class))])
-  
+
   cclist <- sas_class[!duplicated(names(sas_class))]
   chk_sas <- fread(sfp, na.strings = c("NA", "", "."), colClasses = cclist, sep = sas_sep)
   chk_sas <- chk_sas[, colnames(chk_sas)[!duplicated(colnames(chk_sas))], with = FALSE]
 
   print(head(chk_sas))
   print(unlist(sas_class))
-  
+
   hcn <- colnames(chk_hv)
   scn <- colnames(chk_sas)
 
+
+  shared <- unique(scn[scn %in% hcn], hcn[hcn %in% scn])
+
+  if (!is.null(dropnames)) {
+    shared <- shared[! shared %in% dropnames]
+    exclude_sas <- paste0("sas.", unique(scn[!scn %in% hcn | scn %in% dropnames]))
+    exclude_hive <- paste0("hive.", unique(hcn[!hcn %in% scn | hcn %in% dropnames]))
+  } else {
+    exclude_sas <- paste0("sas.", scn[!scn %in% hcn])
+    exclude_hive <- paste0("hive.", hcn[!hcn %in% scn])
+  }
+
   if (!is.null(checknames)) {
+    if (any(checknames %in% c(exclude_sas, exclude_hive))) {
+      stop("Invalid 'checknames' choice! Not present in one or more sets.")
+    }
     chk_sas[, (checknames) := lapply(.SD, round, digits = precision), .SDcols = checknames]
     chk_hv[, (checknames) := lapply(.SD, round, digits = precision), .SDcols = checknames]
   }
-  
+
+
   if (!is.null(charnames)) {
     chk_sas[, (charnames) := lapply(.SD, as.character), .SDcols = charnames]
     chk_hv[, (charnames) := lapply(.SD, as.character), .SDcols = charnames]
   }
-  
+
    if (!is.null(numnames)) {
     chk_sas[, (numnames) := lapply(.SD, as.numeric), .SDcols = numnames]
     chk_hv[, (numnames) := lapply(.SD, as.numeric), .SDcols = numnames]
   }
 
-  shared <- unique(scn[scn %in% hcn], hcn[hcn %in% scn])
-  exclude_sas <- paste0("sas.", scn[!scn %in% hcn])
-  exclude_hive <- paste0("hive.", hcn[!hcn %in% scn])
 
-  nh <- length(hcn[!hcn %in% scn])
-  ns <- length(scn[!scn %in% hcn])
+  nh <- length(exclude_hive)
+  ns <- length(exclude_sas)
   if (ns > 0 & nh > 0) {
     writeLines(paste("Excluding:", paste0(c(exclude_sas, exclude_hive), collapse = ", ")))
   } else if (ns > 0 & nh == 0) {
@@ -261,13 +296,13 @@ sas_hive_compare <- function(dsname, schema, schema_loc, compare_loc,
   } else if (ns == 0 & nh > 0) {
     writeLines(paste("Excluding:", paste0(exclude_hive, collapse = ", ")))
   }
-  
+
   if (is.null(checknames)) {
     writeLines(paste("Merging on:", paste0(shared, collapse = ", ")))
 
     mh <- chk_hv[, shared, with = FALSE]
     ms <- chk_sas[, shared, with = FALSE]
-    
+
     res <- dt_compare(
       mh, ms,
       by = shared,

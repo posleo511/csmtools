@@ -14,9 +14,6 @@ import datetime as dt
 from subprocess import *
 import gc
 gc.collect()
-db_user="mspra"
-db_pwd=base64.b64decode("UGFzc3cwcmQ=")
-folder='/mapr/mapr03r/analytic_users/proscores-op'
 
 def log_message(message_text,verbose=True,return_iri_week=False):
     ts=time.localtime()
@@ -42,10 +39,10 @@ def log_message(message_text,verbose=True,return_iri_week=False):
 
 
 class SQLDevel(object):
-    def __init__(self, user, password, folder, clear_results=True):
+    def __init__(self, user, password, host, service, folder, clear_results=True):
         self.user = user
         self.password = password
-        self.con = cx_Oracle.connect('%s/%s@ex04-scan1.ch3.prod.i.com/SV01ARSP'%(db_user,db_pwd))
+        self.con = cx_Oracle.connect('%s/%s@%s/%s'%(user, password, host, service))
         self.cur = self.con.cursor()
         self.sql_query=""
         self.folder=folder
