@@ -75,10 +75,6 @@ function read_xml () {
   fi
 }
 
-function usage () {
-  echo "Incorrect command line parameter usage! Consult the help file."
-  exit 1
-}
 
 function submit_and_wait () {
   script=$1
@@ -290,7 +286,6 @@ export -f log_resolution
 export -f switch_logs
 export -f loud_exit_code
 export -f read_xml
-export -f usage
 export -f submit_and_wait
 export -f create_hive_table
 export -f load_hive_table

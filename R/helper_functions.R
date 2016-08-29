@@ -233,8 +233,7 @@ sas_hive_compare <- function(dsname, schema, schema_loc, compare_loc,
     require("magrittr")
   }
 
-  chk_hv <- hread(tolower(dsname), schema, schema_loc,
-                  na.strings = c("", "NA", "\\N"))
+  chk_hv <- hread(tolower(dsname), schema, schema_loc)
 
   print(head(chk_hv))
 
