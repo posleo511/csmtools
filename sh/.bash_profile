@@ -27,6 +27,8 @@ export PS1="$Y\t$N $W"'$(__git_ps1 "(%s) ")'"$N$PROMPT_COLOR\u@\H$N:$C\w$N\n"'$C
 
 # Aliases ####
 alias ll='ls -lah $LS_COLORS'
+alias skim="(head -5; tail -5) <"
+alias bh="cat ~/.bash_history | grep"
 
 # Functions ####
 # go up n directories
@@ -67,14 +69,3 @@ function ex() {
          echo "'$1' is not a valid file"
      fi
 }
-
-# edit a file no matter where it is
-function anyvi()
-{
-    if [ -e "$1" ] || [ -f "$1" ]; then
-        $EDITOR "$1"
-    else
-        $EDITOR "$(which "$1")"
-    fi
-}
-complete -cf anyvi
