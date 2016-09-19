@@ -32,6 +32,7 @@ function log_resolution () {
 function switch_logs () {
   exec > /dev/null 2>&1
   mv $1 $2
+  chmod 777 $2
   exec >> $2 2>&1
 }
 
