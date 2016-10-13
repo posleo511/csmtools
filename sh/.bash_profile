@@ -1,3 +1,40 @@
+# .bash_profile
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+	. ~/.bashrc
+fi
+
+# User specific environment and startup programs
+export PIG_HOME=/opt/pig/pig-0.16.0
+export SPARK_HOME=/usr/local/spark
+export R_HOME=/usr/lib64/R
+export ORACLE_HOME=/usr/lib/oracle/11.2/client64
+export OCI_LIB=/research/msdap/oracle-client-install/instant-client/instantclient_11_2
+export TNS_ADMIN=/home/msdap
+export LD_LIBRARY_PATH=/research/msdap/oracle-client-install/instant-client/instantclient_11_2:/usr/local/lib:/usr/lib/oracle/11.2/client64/lib:$LD_LIBRARY_PATH
+
+PATH=$PATH:$HOME/bin
+PATH=${PATH}:${PIG_HOME}/bin
+PATH=${PATH}:${SPARK_HOME}/bin
+
+export PATH
+
+source ~/.aliases
+
+# sudo functions
+function installr {
+  ids=( $@ )
+  id="${ids[@]}";
+  pr=$( echo "c('${id// /','}')")
+  sudo su - -c "R -q -e \"install.packages(${pr}, repos='http://cran.rstudio.com/')\""
+}
+
+function installs {
+  pr=$( readlink -f $1 )
+  sudo su - -c "R -q -e \"install.packages('${pr}', repos = NULL, type='source')\""
+}
+
 #-- An awesome collection of useful things from the ol' interweb ---------------
 # Most things pirated mercilessly from:
 # https://github.com/cep21/jackbash/blob/master/bashrc
@@ -9,7 +46,7 @@ source $HOME/.bash/git-prompt.sh
 
 # Variables ####
 export LS_COLOR='--color=tty'
-export EDITOR=$( which vim )
+export EDITOR=$( which vi )
 PROMPT_COLOR=$G
 if [ ${UID} -eq 0 ]; then
   PROMPT_COLOR=$R ### root is a red color prompt
@@ -69,3 +106,16 @@ function ex() {
          echo "'$1' is not a valid file"
      fi
 }
+
+# edit a file no matter where it is
+function anyvi()
+{
+    if [ -e "$1" ] || [ -f "$1" ]; then
+        $EDITOR "$1"
+    else
+        $EDITOR "$(which "$1")"
+    fi
+}
+complete -cf anyvi
+
+
