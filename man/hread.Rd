@@ -4,6 +4,7 @@
 \alias{hread}
 \title{A function to perform a read of a hive table}
 \usage{
+<<<<<<< HEAD
 hread(table_name, schema, schema_loc, ...)
 }
 \arguments{
@@ -15,6 +16,16 @@ hread(table_name, schema, schema_loc, ...)
 is located on the HDFS}
 
 \item{...}{Additional arguments to \code{\link{hive_read}}}
+=======
+hread(fp, schema, schema_loc, ...)
+}
+\arguments{
+\item{fp}{The name of the hive table}
+
+\item{schema}{The name of the hive schema}
+
+\item{schema_loc}{The directory path of where the schema is located on the HDFS}
+>>>>>>> c570608c417a119cccf711a9d761441b9fefb94b
 }
 \value{
 A data.table
@@ -24,6 +35,7 @@ A function to perform a read of a hive table
 }
 \details{
 Will automatically read all files under the directory after finding
+<<<<<<< HEAD
    the datatypes and column names from the hive metastore. Note that the
    \code{schema} can have a different physical location instead of being forced
    to have the \code{schema_loc/schema} naming convention.
@@ -33,5 +45,8 @@ Will automatically read all files under the directory after finding
 schema_loc <- "/mapr/mapr03r/analytic_users/msmck/csm_synd_hive_schemas/csm_syndicated/"
 hread("dictionary", "csm_syndicated", schema_loc)
 }
+=======
+   the datatypes and column names from the hive metastore
+>>>>>>> c570608c417a119cccf711a9d761441b9fefb94b
 }
 

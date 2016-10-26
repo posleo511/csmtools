@@ -1,0 +1,18 @@
+set hive.exec.reducers.bytes.per.reducer = 10000000;
+set mapred.tasktracker.reduce.tasks.maximum;
+set mapred.tasktracker.map.tasks.maximum;
+set hive.exec.compress.intermediate=true;
+set hive.auto.convert.join.noconditionaltask = true;
+set hive.auto.convert.join;
+set hive.vectorized.execution.enabled = true;
+set hive.auto.convert.join.noconditionaltask.size = 10000;
+set hive.default.fileformat = textfile;
+set hive.cli.print.header = true;
+set hive.exce.parallel = true;
+set hive.map.aggr.hash.percentmemory = 0.25;
+set hive.exec.dynamic.partition.mode = nonstrict;
+set hive.exec.max.dynamic.partitions = 50000;
+set hive.exec.max.dynamic.partitions.pernode = 1000;
+set hive.cli.print.current.db = false;
+set hive.cli.print.header = true;
+set hive.support.concurrency = true;

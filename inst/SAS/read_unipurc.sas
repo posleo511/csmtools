@@ -1,0 +1,63 @@
+%MACRO READ_UNIPURC(DSNAME, LIB, DIR, SWEEK, EWEEK);
+
+  /* NOTE: FOR THIS TO WORK OVER MOUNTED DRIVES YOU MUST SPECIFY:
+      OPTIONS FILELOCKS=NONE */
+  %DO WEEK = &SWEEK %TO &EWEEK;
+    
+    FILENAME DIRLIST PIPE "ls &DIR/unipurc&WEEK";
+    
+    DATA DIRLIST_W&WEEK;
+      LENGTH FNAME $256; 
+      INFILE DIRLIST LENGTH=RECLEN ;
+      INPUT FNAME $VARYING256. RECLEN ;
+      FILEPATH = "&DIR/unipurc&WEEK/"||FNAME;
+    RUN;
+    
+  %END;
+
+  DATA DIRLIST;
+    SET
+      %DO WEEK = &SWEEK %TO &EWEEK;
+        DIRLIST_W&WEEK
+      %END;
+    ;
+  RUN;
+  
+  PROC PRINT DATA = DIRLIST(KEEP = FILEPATH);
+    TITLE "FILES READ TO &LIB..&DSNAME";
+  RUN;
+  
+  DATA &LIB..&DSNAME (DROP=FNAME FILEPATH);
+    SET DIRLIST;
+    INFILE DUMMY FILEVAR = FILEPATH LENGTH=RECLEN END=DONE DSD DLM = "|" MISSOVER;
+    DO WHILE(NOT DONE);
+      INPUT 
+        PANID
+        UPC
+        WEEK
+        MINUTE
+        STORE
+        SYS
+        GEN
+        VEN
+        ITE
+        COUP_ORG
+        COUP_FCVAL
+        OFFSET
+        SOURCE
+        PANSTORE
+        OOH
+        FSP
+        MOP
+        DEAL
+        FEA
+        DIS
+        PRCT_OFF
+        COUP_VAL
+        CENTS
+        UNITS;
+      OUTPUT;
+    END;
+  RUN;
+
+%MEND READ_UNIPURC;
