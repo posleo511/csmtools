@@ -12,9 +12,17 @@ hive_datatypes(schema, table_name)
 \item{table_name}{A character string, the name of the hive table}
 }
 \value{
-A data.table
+A \code{\link[data.table]{data.table}} with columns:
+\itemize{
+  \item \code{name} The column name (\code{character})
+  \item \code{type} The R-datatype (\code{character})
+}
 }
 \description{
 Extract the R-datatypes for a hive table
+}
+\details{
+For now the functions converts all number-y datatypes like integer,
+   float, decimal to \code{numeric} and both date and string types to \code{character}.
 }
 

@@ -2,7 +2,13 @@
 #'
 #' @inheritParams filter_files
 #'
+#' @details Filters out the files that are less than (or less than or equal to)
+#'    the size with units specified. If all files are filtered out, then a
+#'    character vector of length 0 is returned.
 #' @return A character vector
+#' @examples
+#' x <- list.files(path = Sys.getenv("TEMP"), full.names = TRUE)[1]
+#' file_size_filter(x, size = 1, units = "KB")
 #' @export
 file_size_filter <- function(x, size = 0, units = "B", include = FALSE) {
   if (units == "B") {

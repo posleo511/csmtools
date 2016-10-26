@@ -5,7 +5,7 @@
 #' @param schema_loc A character string, the directory path of where the schema
 #'    is located on the HDFS
 #' @param ... Additional arguments to \code{\link{hive_read}}
-#' @return A data.table
+#' @return A \code{\link[data.table]{data.table}}
 #' @details Will automatically read all files under the directory after finding
 #'    the datatypes and column names from the hive metastore. Note that the
 #'    \code{schema} can have a different physical location instead of being forced
@@ -26,9 +26,10 @@ hread <- function(table_name, schema, schema_loc, ...) {
     stop("`magrittr` needed for this function to work. Please install it.", call. = FALSE)
   }
 
-  fn <- file.path(schema_loc, table_name) %>%
+  files <- file.path(schema_loc, table_name) %>%
     list.files(full.names = TRUE) %>%
-    csmtools::filter_empty_files
+    csmtools::filter_files
+  fn <- files$filename
 
   if (length(fn) == 0) stop("No files found!")
   writeLines(paste("Found", length(fn), "non-empty files."))
@@ -37,8 +38,8 @@ hread <- function(table_name, schema, schema_loc, ...) {
   meta <- csmtools::hive_datatypes(schema, table_name)
 
   writeLines("Attempting read...")
-  stack <- lapply(fn, csmtools::hive_read, data_types = meta$type,
-                  col_names = meta$name...) %>%
+  stack <- lapply(fn, csmtools::hive_read, colClasses = meta$type,
+                  col.names = meta$name, ...) %>%
     data.table::rbindlist()
   writeLines(paste0("Read a total of ", nrow(stack), " lines."))
 

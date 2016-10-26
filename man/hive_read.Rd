@@ -4,19 +4,15 @@
 \alias{hive_read}
 \title{Read a Hive table that is stored as a text file}
 \usage{
-hive_read(x, data_types, col_names, ...)
+hive_read(x, ...)
 }
 \arguments{
 \item{x}{A character string, the directory path of the hive table to read}
 
-\item{data_types}{A character vector, the data types of the columns, in order}
-
-\item{col_names}{A character vector, the column names, in order}
-
 \item{...}{Additional arguments to \code{\link[data.table]{fread}}}
 }
 \value{
-A data.table
+A \code{\link[data.table]{data.table}}
 }
 \description{
 Read a Hive table that is stored as a text file

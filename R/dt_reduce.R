@@ -1,14 +1,16 @@
 #' Apply a row-wise Reduce
 #' @return A vector
 #'
-#' @param DT A data.table
+#' @param DT A \code{\link[data.table]{data.table}}
 #' @param FUN Any binary function
 #' @param ... Quoted column names from DT
 #' @details Apply a row-wise reduce for a given function on a set of a data.table's
 #'     columns. The main advantage of this function is that names can be passed
 #'     to the function as vectors, eliminating the need to hard code differencing,
-#'     etc. based on column names.
-#' @return A vector, class will vary
+#'     etc. based on column names. Additionally, the output is specified by the
+#'     user -- often we want to perform a calculation and have vector output,
+#'     something usaully implemented with an ugly \code{\link{unlist}}.
+#' @return Class will vary
 #' @examples
 #' library("data.table")
 #' DT <- as.data.table(head(iris))

@@ -7,7 +7,7 @@
 dt_reduce(DT, FUN, ...)
 }
 \arguments{
-\item{DT}{A data.table}
+\item{DT}{A \code{\link[data.table]{data.table}}}
 
 \item{FUN}{Any binary function}
 
@@ -16,7 +16,7 @@ dt_reduce(DT, FUN, ...)
 \value{
 A vector
 
-A vector, class will vary
+Class will vary
 }
 \description{
 Apply a row-wise Reduce
@@ -25,7 +25,9 @@ Apply a row-wise Reduce
 Apply a row-wise reduce for a given function on a set of a data.table's
     columns. The main advantage of this function is that names can be passed
     to the function as vectors, eliminating the need to hard code differencing,
-    etc. based on column names.
+    etc. based on column names. Additionally, the output is specified by the
+    user -- often we want to perform a calculation and have vector output,
+    something usaully implemented with an ugly \code{\link{unlist}}.
 }
 \examples{
 library("data.table")

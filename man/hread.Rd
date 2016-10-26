@@ -17,7 +17,7 @@ is located on the HDFS}
 \item{...}{Additional arguments to \code{\link{hive_read}}}
 }
 \value{
-A data.table
+A \code{\link[data.table]{data.table}}
 }
 \description{
 A function to perform a read of a hive table

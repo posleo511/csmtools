@@ -1,8 +1,13 @@
 #' Extract the R-datatypes for a hive table
 #'
 #' @inheritParams hread
-#'
-#' @return A data.table
+#' @details For now the functions converts all number-y datatypes like integer,
+#'    float, decimal to \code{numeric} and both date and string types to \code{character}.
+#' @return A \code{\link[data.table]{data.table}} with columns:
+#' \itemize{
+#'   \item \code{name} The column name (\code{character})
+#'   \item \code{type} The R-datatype (\code{character})
+#' }
 #' @import data.table magrittr
 #' @export
 hive_datatypes <- function(schema, table_name) {

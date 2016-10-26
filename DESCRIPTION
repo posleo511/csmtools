@@ -1,7 +1,7 @@
 Package: csmtools
 Type: Package
 Title: R code in use in CSM solutions
-Version: 0.1.0
+Version: 1.0.0
 Author: McClelland Legge <McClelland.Kemp@iriworldwide.com> [aut, cre]
 Maintainer: <McClelland.Kemp@iriworldwide.com>
 Description: A collection of helpful functions that are widely or commonly used by the organization.

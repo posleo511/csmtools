@@ -8,11 +8,18 @@
 #' @param include A boolean, include files of size \code{size}?
 #' @param simplify A boolean, should we create a data.table from the list of output?
 #' @details Automatically excludes any non-existant items
-#' @return A character vector
+#' @return A list or a \code{\link[data.table]{data.table}}
 #' @examples
-#'
+#' # single file size and unit specification
 #' x <- list.files(path = Sys.getenv("TEMP"), full.names = TRUE)[1:100]
 #' filter_files(x, size = 1, units = "KB")
+#'
+#' # multiple specifications
+#' size <- c(0, rep(1, 4))
+#' units <- c("B", "B", "KB", "MB", "GB")
+#' res <- filter_files(x, size, units)
+#' res$filesize <- factor(res$filesize, levels = paste(size, units))
+#' table(res$filesize)
 #' @export
 filter_files <- function(x, size = 0, units = "B", include = FALSE, simplify = TRUE) {
 
