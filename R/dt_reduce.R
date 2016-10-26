@@ -27,6 +27,7 @@ dt_reduce <- function(DT, FUN, ...) {
   if (!requireNamespace("data.table", quietly = TRUE)) {
     stop("`data.table` needed for this function to work. Please install it.", call. = FALSE)
   }
+
   if (!data.table::is.data.table(DT)) stop("'DT' is not a data.table!")
 
   return(DT[, base::Reduce(FUN, .SD), .SDcols = c(...)])

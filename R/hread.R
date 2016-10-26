@@ -37,8 +37,8 @@ hread <- function(table_name, schema, schema_loc, ...) {
   meta <- csmtools::hive_datatypes(schema, table_name)
 
   writeLines("Attempting read...")
-
-  stack <- lapply(fn, csmtools::hive_read, ...) %>%
+  stack <- lapply(fn, csmtools::hive_read, data_types = meta$type,
+                  col_names = meta$name...) %>%
     data.table::rbindlist()
   writeLines(paste0("Read a total of ", nrow(stack), " lines."))
 

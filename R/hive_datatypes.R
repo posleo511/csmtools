@@ -1,7 +1,6 @@
 #' Extract the R-datatypes for a hive table
 #'
-#' @param schema A character string, the name of the hive schema
-#' @param table_name A character string, the name of the hive table
+#' @inheritParams hread
 #'
 #' @return A data.table
 #' @import data.table magrittr
