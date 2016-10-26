@@ -22,14 +22,10 @@ A vector, class will vary
 Apply a row-wise Reduce
 }
 \details{
-<<<<<<< HEAD
 Apply a row-wise reduce for a given function on a set of a data.table's
     columns. The main advantage of this function is that names can be passed
     to the function as vectors, eliminating the need to hard code differencing,
     etc. based on column names.
-=======
-Apply a row-wise reduce for a given function on a set of a data.table's columns
->>>>>>> c570608c417a119cccf711a9d761441b9fefb94b
 }
 \examples{
 library("data.table")

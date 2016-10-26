@@ -2,7 +2,6 @@
 % Please edit documentation in R/iri_week.R
 \name{iri_week}
 \alias{iri_week}
-<<<<<<< HEAD
 \title{A function to derive the IRI week for the date specified}
 \usage{
 iri_week(x, fmt = "\%Y-\%m-\%d", ...)
@@ -15,38 +14,15 @@ iri_week(x, fmt = "\%Y-\%m-\%d", ...)
 \item{...}{Additional arguments to \code{as.Date} including further arguments
 to be passed from or to other methods, including \code{format} for
 \code{as.character} and \code{as.Date} methods.}
-=======
-\title{A function to extend the functionaliy of the base::floor function}
-\usage{
-iri_week(x, fmt = "\%Y-\%m-\%d")
-}
-\arguments{
-\item{x}{A numeric}
-
-\item{digits}{The number of digits to the left of the decimal place to round to}
->>>>>>> c570608c417a119cccf711a9d761441b9fefb94b
 }
 \value{
 A numeric
 }
 \description{
-<<<<<<< HEAD
 A function to derive the IRI week for the date specified
 }
 \examples{
 iri_week(Sys.Date())
 iri_week("Dec. 12, 2016", "\%b. \%d, \%Y")
-=======
-A function to extend the functionaliy of the base::floor function
-}
-\details{
-Usually used for purchase data when you need to floor the cents
-}
-\examples{
-x <- 99.9999
-floor(x, 2)
-# is equivalent to:
-base::floor(100 * x)
->>>>>>> c570608c417a119cccf711a9d761441b9fefb94b
 }
 

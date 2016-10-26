@@ -14,13 +14,8 @@ Load packages silently
 }
 \examples{
 # load some notoriously loud packages
-<<<<<<< HEAD
 \dontrun{
 ninja_load("data.table", "bit64")
 }
 }
-=======
-ninja_load("data.table", "bit64")
-}
->>>>>>> c570608c417a119cccf711a9d761441b9fefb94b
 
