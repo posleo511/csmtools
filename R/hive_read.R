@@ -8,8 +8,13 @@
 #' @return A \code{\link[data.table]{data.table}}
 #' @export
 hive_read <- function(x, ...) {
-  na.strings <- unique(c("\\N", na.strings)) # adding the default hive null
-  sep <- ifelse(is.null(sep), "|", sep)
+  if (exists("na.strings")) {
+    na.strings <- unique(c("\\N", na.strings)) # adding the default hive null
+  } else {
+    na.strings <- c("\\N", "NA", "")
+  }
+
+  sep <- ifelse(exists("sep"), sep, "|")
   data.table::fread(paste0("cat ", x, " | tr '\001' '|'"), sep = sep,
-                    showProgress = TRUE, na.strings = c("\\N", "NA", ""), ...)
+                    showProgress = TRUE, na.strings = na.strings, ...)
 }

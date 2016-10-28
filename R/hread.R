@@ -28,7 +28,7 @@ hread <- function(table_name, schema, schema_loc, ...) {
 
   files <- file.path(schema_loc, table_name) %>%
     list.files(full.names = TRUE) %>%
-    csmtools::filter_files
+    filter_files
   fn <- files$filename
 
   if (length(fn) == 0) stop("No files found!")

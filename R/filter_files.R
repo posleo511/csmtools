@@ -36,13 +36,13 @@ filter_files <- function(x, size = 0, units = "B", include = FALSE, simplify = T
   if (length(size) != length(units) & length(units) > 1)
     stop("'size' and 'units' arguments must conform!")
 
-  res <- mapply(csmtools::file_size_filter, size, units, include, MoreArgs = list(x = x), SIMPLIFY = FALSE)
+  res <- mapply(file_size_filter, size, units, include, MoreArgs = list(x = x), SIMPLIFY = FALSE)
   names(res) <- paste(size, units)
 
   if (isTRUE(simplify)) {
 
     dtlist <- lapply(res, data.table::as.data.table)
-    sim_res <- data.table::rbindlist(dtlist, idcol = "filesize")
+    sim_res <- data.table::rbindlist(dtlist, idcol = "min_file_size")
     data.table::setnames(sim_res, "V1", "filename")
 
     return(sim_res)

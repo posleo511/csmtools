@@ -23,8 +23,8 @@ file_size_filter <- function(x, size = 0, units = "B", include = FALSE) {
     stop(paste("Invalid 'units' specified:", units))
 
   if (isTRUE(include)) {
-    x[base::file.size(x) >= adjsize]
+    x[base::file.info(x)$size >= adjsize]
   } else {
-    x[base::file.size(x) > adjsize]
+    x[base::file.info(x)$size > adjsize]
   }
 }
