@@ -18,8 +18,8 @@
 #' size <- c(0, rep(1, 4))
 #' units <- c("B", "B", "KB", "MB", "GB")
 #' res <- filter_files(x, size, units)
-#' res$filesize <- factor(res$filesize, levels = paste(size, units))
-#' table(res$filesize)
+#' res$min_file_size <- factor(res$min_file_size, levels = paste(size, units))
+#' table(res$min_file_size)
 #' @export
 filter_files <- function(x, size = 0, units = "B", include = FALSE, simplify = TRUE) {
 
