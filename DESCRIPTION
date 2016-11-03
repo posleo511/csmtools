@@ -10,4 +10,5 @@ LazyData: TRUE
 RoxygenNote: 5.0.1
 Imports: data.table,
     magrittr
-Suggests: testthat
+Suggests: testthat,
+    covr

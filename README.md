@@ -1,7 +1,6 @@
 # csmtools
 
-[![Build Status](https://travis-ci.org/McClellandLegge/csmtools.svg?branch=master)](https://travis-ci.com/McClellandLegge/csmtools) [![codecov](https://codecov.io/gh/McClellandLegge/csmtools/branch/master/graph/badge.svg)](https://codecov.io/gh/McClellandLegge/csmtools)
-
+[![Build Status](https://travis-ci.com/McClellandLegge/csmtools.svg?token=vWyRwqiydkD9aSKjF9mj&branch=master)](https://travis-ci.com/McClellandLegge/csmtools) [![codecov](https://codecov.io/gh/McClellandLegge/csmtools/branch/master/graph/badge.svg)](https://codecov.io/gh/McClellandLegge/csmtools)
 
 Multi-language repository for any useful code
 
