@@ -7,7 +7,7 @@
 make_color(...)
 }
 \arguments{
-\item{x}{A (possibly) mixed-type vector}
+\item{...}{A (possibly) mixed-type vector}
 }
 \value{
 A list of hex values or Boolean \code{FALSE} when the element cannot

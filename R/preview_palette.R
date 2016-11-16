@@ -25,6 +25,6 @@ preview_palatte <- function(x) {
   ns <- base::seq_along(x)
   graphics::image(ns, 1, base::as.matrix(ns), col = unlist(cols), xlab = "",
         ylab = "", xaxt = "n", yaxt = "n", bty = "n")
-  axis(1, at = ns, labels = x, tick = FALSE, las = 3,
+  graphics::axis(1, at = ns, labels = x, tick = FALSE, las = 3,
        cex.axis = min(1, 20 / length(x)))
 }

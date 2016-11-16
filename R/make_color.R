@@ -1,6 +1,6 @@
 #' A function to convert colors to their hex values
 #'
-#' @param x A (possibly) mixed-type vector
+#' @param ... A (possibly) mixed-type vector
 #'
 #' @return A list of hex values or Boolean \code{FALSE} when the element cannot
 #'    be interpreted as a color
@@ -22,8 +22,8 @@ make_color <- function(...) {
                error = function(e) FALSE)
     } else {
       tryCatch({
-          colMat <- col2rgb(x)
-          rgb(red = colMat[1, ] / 255,
+          colMat <- grDevices::col2rgb(x)
+          grDevices::rgb(red = colMat[1, ] / 255,
               green = colMat[2, ] / 255,
               blue = colMat[3, ] / 255)
         }, error = function(e) FALSE)
