@@ -1,8 +1,8 @@
 #' A function to do multiple directory reads
 #'
-#' @param envs A list
+#' @param envs A named list
 #' \itemize{
-#'    \item env A character string sepecifying the path of the directory
+#'    \item dir_path A character string sepecifying the path of the directory
 #'    \item hive A boolean, is this a hive table or a regular file
 #'    \item ext Optional, if \code{hive} is \code{FALSE}, specify if only files
 #'        with a certain extension should be read, e.g. \code{.dat} or \code{.csv}.
@@ -24,8 +24,27 @@
 #' @param ... Additional arguments to \code{\link[data.table]{fread}}
 #'
 #' @return A list of data.tables or a data.table
-#' @details directory + reads = dreads, ha!
+#' @seealso \link{dread}
 #' @export
+#' @examples
+#' \dontrun{
+#' # read all walmart trip types from three different environments
+#' # some are hive, some are regular files
+#'
+#' wlm_01_envs <- list(
+#'   prd = list(dir_path = file.path(home, "csm_synd_hive_schemas/csm_syndicated")
+#'              , hive = TRUE)
+#'   , dev = list(dir_path = file.path(home, "csm_synd_hive_schemas/csm_syndicated_dev")
+#'                , hive = TRUE)
+#'   , leg = list(dir_path = file.path(home, "dev/trip_typing/legacy_walmart/artifacts")
+#'                , hive = FALSE
+#'                , ext = ".dat")
+#' )
+#'
+#' ft <- paste0(1929:1940, collapse = "|")
+#'
+#' dreads(wlm_01_envs, "wm_triptypes", filters = ft)
+#' }
 #' @import data.table magrittr
 dreads <- function(envs, pattern, colnames = NULL, filters = NULL,
                    combine_dir = TRUE, combine_env = TRUE, ...) {
