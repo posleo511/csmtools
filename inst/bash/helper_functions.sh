@@ -1,18 +1,19 @@
-#!/bin/bash
+#!/bin/sh
 
 function contains_element () {
   local e
-  for e in "${@:2}"; do
-    [[ "$e" == "$1" ]] && return 0;
+  for e in "${@:2}"; do 
+    [[ "$e" == "$1" ]] && return 0; 
   done
   return 1
 }
 
 function convertsecs () {
-  ((h=${1}/3600))
+  ((d=${1}/86400))
+  ((h=${1}%86400/3600))
   ((m=(${1}%3600)/60))
   ((s=${1}%60))
-  printf "%02d:%02d:%02d\n" $h $m $s
+  printf "%02d days %02d hours %02d min %02d sec\n" $d $h $m $s
 }
 
 function log_resolution () {
@@ -55,19 +56,19 @@ function read_xml () {
     echo $usage
     return 1
   fi
-
+   
   if [[ "$1" == "" ]]; then
     echo "No xml-id specified!"
     return 1
   fi
-
+  
   if [[ "$2" == "" ]]; then
     echo "No xml-file specified!"
     return 1
   fi
-
+  
   local value=$( grep -oP "(?<=$1>)[^<]+" $2 )
-
+  
   if [[ -z "${value}" ]]; then
     echo "No value for that xml-id found!"
     return 1
@@ -84,7 +85,7 @@ function submit_and_wait () {
   shift 3
   names=( $@ )
   echo -e "\n== Submissions ============================ $( date +%H:%M:%S ) ==\n"
-
+  
   for el in "${names[@]}"; do
     echo -ne "Submitting ${el}... "
     bash ${script} -t ${rs} -w ${el} > /dev/null 2>&1 &
@@ -107,7 +108,7 @@ function submit_and_wait () {
       echo "Success!"
     fi
   done
-
+  
   if [[ ${fails} != 0 ]]; then
     return 1
   else
@@ -147,7 +148,7 @@ function create_hive_table () {
             [[ "$?" != "0" ]] \
               && usage ${msg}
             ;;
-        *)
+        *) 
             usage ${msg}
             ;;
     esac
@@ -157,10 +158,10 @@ function create_hive_table () {
   local tablename=$2
   shift 2
   local format="$@"
-
+  
   [[ "${external}" == "true" ]] && mod=EXTERNAL
-  [[ ${header} > 0 ]] && headmod="tblproperties ('skip.header.line.count'='${header}')"
-
+  [[ ${header} > 0 ]] && headmod="tblproperties ('skip.header.line.count'='${header}')" 
+  
   local cmd="CREATE ${mod} TABLE IF NOT EXISTS ${schema}.${tablename} (
       ${format}
     )
@@ -168,11 +169,11 @@ function create_hive_table () {
     NULL DEFINED AS '${nullstr}'
     STORED AS ${filefmt}
     ${headmod}"
-
+  
   if [[ "${overwrite}" == "true" ]]; then
     hive -S -e "DROP TABLE IF EXISTS ${schema}.${tablename}"
-  fi
-
+  fi 
+  
   hive -S -e "${cmd}"
 }
 
@@ -189,19 +190,19 @@ function load_hive_table () {
             [[ "$?" != "0" ]] \
               && usage ${msg}
             ;;
-        *)
+        *) 
             usage ${msg}
             ;;
     esac
   done
   shift $((OPTIND-1))
-
+  
   if [[ "${overwrite}]" == "true" ]]; then
     mod=OVERWRITE
   fi
-
+  
   hive -S -e "
-    LOAD DATA INPATH '$3'
+    LOAD DATA INPATH '$3' 
     ${mod} INTO TABLE $1.$2"
 }
 
@@ -217,28 +218,28 @@ function create_hive_schema () {
             [[ "$?" != "0" ]] \
               && usage ${msg}
             ;;
-        *)
+        *) 
             usage ${msg}
             ;;
     esac
   done
-
+  
   shift $((OPTIND-1))
   local schema=$1
   local location=$2
-
+  
   if [[ "${overwrite}" == "true" ]]; then
     local cmd="
       DROP SCHEMA IF EXISTS ${schema} CASCADE;
-
+      
       CREATE SCHEMA ${schema}
       LOCATION '${location}'"
   else
     local cmd="CREATE SCHEMA IF NOT EXISTS ${schema} LOCATION '${location}'"
   fi
-
+    
   hive -S -e "${cmd}"
-
+  
 }
 
 function drop_hive_schema () {
@@ -253,12 +254,12 @@ function drop_hive_schema () {
             [[ "$?" != "0" ]] \
               && usage ${msg}
             ;;
-        *)
+        *) 
             usage ${msg}
             ;;
     esac
   done
-
+  
   shift $((OPTIND-1))
   local schema=$1
   if [[ "${cascade}" == "true" ]]; then
@@ -280,6 +281,31 @@ function header_map () {
   awk -F"|" '$2 != "" { print "1 s/"$2",/"$1",/Ig" }' $1 | sed -i -f - $2
 }
 
+waitall() { # PID...
+  ## Wait for children to exit and indicate whether all exited with 0 status.
+  local errors=0
+  while :; do
+    debug "Processes remaining: $*"
+    for pid in "$@"; do
+      shift
+      if kill -0 "$pid" 2>/dev/null; then
+        debug "$pid is still alive."
+        set -- "$@" "$pid"
+      elif wait "$pid"; then
+        debug "$pid exited with zero exit status."
+      else
+        debug "$pid exited with non-zero exit status."
+        ((++errors))
+      fi
+    done
+    (("$#" > 0)) || break
+    sleep ${WAITALL_DELAY:-600}
+   done
+  ((errors == 0))
+}
+
+debug() { echo "DEBUG: $*" >&2; }
+
 export -f contains_element
 export -f drop_hive_schema
 export -f convertsecs
@@ -294,3 +320,5 @@ export -f create_hive_schema
 export -f notify
 export -f name_map
 export -f header_map
+export -f waitall
+export -f debug
