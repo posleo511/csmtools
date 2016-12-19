@@ -2,6 +2,19 @@
 
 ***
 
+## **csmtools 1.3.1-4**
+
+#### *New Features*
+
+* A new [read_pstrinfo](inst/sas/pstrinfo.sas) macro to read the pstrinfo hive table from SAS over a mount
+* A new [waitall](inst/bash/helper_functions.sh) bash function to wait for an array of process IDs
+
+#### *Minor Fixes*
+
+* Fixed the hive variable specification in the [hive config script](inst/hive/hive_base_config.hql) to be compatible with Hive 1.2.0
+* Changed the printed output of the [convert_secs](inst/bash/helper_functions.sh) bash function
+* Changed the delimited for the [read_the_upcs2](inst/sas/read_the_upcs2.sas) macro
+
 ## **csmtools 1.3.0**
 
 #### *Major New Features*
