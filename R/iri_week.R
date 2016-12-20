@@ -6,6 +6,7 @@
 #'     to be passed from or to other methods, including \code{format} for
 #'     \code{as.character} and \code{as.Date} methods.
 #' @return A numeric
+#' @seealso \link{iri_week_date}
 #' @examples
 #' iri_week(Sys.Date())
 #' iri_week("Dec. 12, 2016", "%b. %d, %Y")

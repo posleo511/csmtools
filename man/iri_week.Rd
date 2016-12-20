@@ -25,4 +25,7 @@ A function to derive the IRI week for the date specified
 iri_week(Sys.Date())
 iri_week("Dec. 12, 2016", "\%b. \%d, \%Y")
 }
+\seealso{
+\link{iri_week_date}
+}
 
