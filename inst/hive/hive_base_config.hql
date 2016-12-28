@@ -1,6 +1,6 @@
 set hive.exec.reducers.bytes.per.reducer = 10000000;
-set mapred.tasktracker.reduce.tasks.maximum;
-set mapred.tasktracker.map.tasks.maximum;
+set mapreduce.tasktracker.reduce.tasks.maximum;
+set mapreduce.tasktracker.map.tasks.maximum;
 set hive.exec.compress.intermediate=true;
 set hive.auto.convert.join.noconditionaltask = true;
 set hive.auto.convert.join;
