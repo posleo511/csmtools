@@ -4,10 +4,14 @@
 \alias{dread}
 \title{Fread all files in a directory}
 \usage{
-dread(dir_path, ...)
+dread(dir_path, hive_default = FALSE, ...)
 }
 \arguments{
 \item{dir_path}{A valid directory path}
+
+\item{hive_default}{A boolean set to \code{FALSE}, in which case we use
+\code{\link[data.table]{fread}}. Otherwise when \code{FALSE} we use
+\code{\link[csmtools]{hive_read}}.}
 
 \item{...}{Additional arguments to \code{\link[data.table]{fread}}}
 }

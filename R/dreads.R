@@ -99,13 +99,22 @@ dreads <- function(envs, pattern, colnames = NULL, filters = NULL,
 #' Fread all files in a directory
 #'
 #' @param dir_path A valid directory path
+#' @param hive_default A boolean set to \code{FALSE}, in which case we use
+#'     \code{\link[data.table]{fread}}. Otherwise when \code{FALSE} we use
+#'     \code{\link[csmtools]{hive_read}}.
 #' @param ... Additional arguments to \code{\link[data.table]{fread}}
 #'
 #' @return A data table
 #' @export
 #' @import data.table magrittr
-dread <- function(dir_path, ...) {
-  paste0("cat ", dir_path, "/*") %>%
-    lapply(data.table::fread, ...) %>%
-    data.table::rbindlist()
+dread <- function(dir_path, hive_default = FALSE, ...) {
+  if(isTRUE(hive_default)) {
+    csmtools::hive_read(paste0(dir_path, "/*"), ...)
+  } else {
+    f <- data.table::fread
+    paste0("cat ", dir_path, "/*") %>%
+      lapply(f, ...) %>%
+      data.table::rbindlist()
+  }
+
 }

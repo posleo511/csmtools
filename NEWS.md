@@ -1,25 +1,24 @@
 # **NEWS**
 
 ***
-## **csmtools 1.4.1**
 
-#### *Minor Fixes*
-
-* Fixed deprecated hive map-reduce parameters in the [hive config script](hive/hive_base_config.hql)
-
-***
-
-## **csmtools 1.4.0**
+## **csmtools 1.4.0-2**
 
 #### *New Features*
 
 A suite of SAS macros to help with the Syndicated Trip Typing
 
-* [finalsupercat1](inst/SAS/finalsupercat1.sas)
-* [purchfreq](inst/SAS/purchfreq.sas)
-* [groupfreq](inst/SAS/groupfreq.sas)
-* [tripmeans](inst/SAS/tripmeans.sas)
-* [outletfreq](inst/SAS/outletfreq.sas)
+* [finalsupercat1](inst/SAS/read_finalsupercat1.sas)
+* [purchfreq](inst/SAS/read_purchfreq.sas)
+* [groupfreq](inst/SAS/read_groupfreq.sas)
+* [tripmeans](inst/SAS/read_tripmeans.sas)
+* [outletfreq](inst/SAS/read_outletfreq.sas)
+
+#### *Minor Fixes*
+
+* Fixed deprecated hive map-reduce parameters in the [hive config script](hive/hive_base_config.hql)
+* Fixed the SAS variable length for the data type of the column in the R-meta section of the [dlm_dump.sas](SAS/dlm_dump.sas)
+* [dreads](R/dreads.R) now can read hive default tables (automatically replaces unprintable char sep with pipe delim)
 
 ***
 
