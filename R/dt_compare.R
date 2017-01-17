@@ -7,6 +7,9 @@
 #'    for the datatypes of the columns
 #' @param precision The precision of the comparison, is the \code{digits}
 #'    argument to the \code{\link[base]{round}} function
+#' @param verbose A boolean, should messages be written to the window?
+#' @param plot A boolean, should a summary plot be produced? Requires the loading
+#'     of additional packages
 #' @param ... Any arguments to the \code{\link[data.table]{merge}} function
 #'
 #' @return A data.frame
@@ -21,7 +24,7 @@
 #' # can specify any arguments to 'merge'
 #' res <- dt_compare(x, y, compare = c("Sepal.Width", "Sepal.Length"), by = "id", all.y = TRUE)
 #' @export
-dt_compare <- function(x, y, compare = NULL, func = `-`, precision = 6, ...){
+dt_compare <- function(x, y, compare = NULL, func = `-`, precision = 6, verbose = TRUE, plot = TRUE, ...){
 
   if (!requireNamespace("data.table", quietly = TRUE)) {
     stop("`data.table` needed for this function to work. Please install it.", call. = FALSE)
@@ -37,33 +40,33 @@ dt_compare <- function(x, y, compare = NULL, func = `-`, precision = 6, ...){
   if (!data.table::is.data.table(x)) data.table::setDT(x)
   if (!data.table::is.data.table(y)) data.table::setDT(y)
 
-  writeLines("\n-- Rows Counts ---------\n")
+  if (isTRUE(verbose)) writeLines("\n-- Rows Counts ---------\n")
   nrx <- nrow(x)
   nry <- nrow(y)
-  writeLines(paste(tblx, "has", nrx, "rows"))
-  writeLines(paste(tbly, "has", nry, "rows"))
+  if (isTRUE(verbose)) writeLines(paste(tblx, "has", nrx, "rows"))
+  if (isTRUE(verbose)) writeLines(paste(tbly, "has", nry, "rows"))
 
-  writeLines("\n-- DT Keys -------------\n")
+  if (isTRUE(verbose)) writeLines("\n-- DT Keys -------------\n")
   xkey <- data.table::key(x)
   ykey <- data.table::key(y)
   if (!is.null(xkey)) {
-    writeLines(paste0("Found DT keys for", tblx, ", removing..."))
+    if (isTRUE(verbose)) writeLines(paste0("Found DT keys for", tblx, ", removing..."))
     setkeyv(x, NULL)
   } else {
-    writeLines(paste0("No DT keys for ", tblx, "..."))
+    if (isTRUE(verbose)) writeLines(paste0("No DT keys for ", tblx, "..."))
   }
   if (!is.null(ykey)) {
-    writeLines(paste0("Found DT keys for", tbly, ", removing..."))
+    if (isTRUE(verbose)) writeLines(paste0("Found DT keys for", tbly, ", removing..."))
     setkeyv(y, NULL)
   } else {
-    writeLines(paste0("No DT keys for ", tbly, "..."))
+    if (isTRUE(verbose)) writeLines(paste0("No DT keys for ", tbly, "..."))
   }
 
-  writeLines("\n-- Duplicates ----------\n")
+  if (isTRUE(verbose)) writeLines("\n-- Duplicates ----------\n")
   dx <- sum(duplicated(x))
   dy <- sum(duplicated(y))
-  writeLines(paste(tblx, "has", dx, "duplicates! Rows:", nrx - dx))
-  writeLines(paste(tbly, "has", dy, "duplicates! Rows:", nry - dy))
+  if (isTRUE(verbose)) writeLines(paste(tblx, "has", dx, "duplicates! Rows:", nrx - dx))
+  if (isTRUE(verbose)) writeLines(paste(tbly, "has", dy, "duplicates! Rows:", nry - dy))
 
   if (dx > 0) x <- unique(x)
   if (dy > 0) y <- unique(y)
@@ -83,16 +86,18 @@ dt_compare <- function(x, y, compare = NULL, func = `-`, precision = 6, ...){
       yrnd <- names(yclass)[yclass == "numeric" & names(yclass) %in% compare]
 
       if (length(xrnd) > 0 | length(yrnd) > 0) {
-        writeLines("\n-- Precision -----------\n")
+        if (isTRUE(verbose)) writeLines("\n-- Precision -----------\n")
       }
 
       if (length(xrnd) > 0) {
-        writeLines(paste0("Rounding ", tblx, " columns: ", paste0(xrnd, collapse = ", ")))
+        if (isTRUE(verbose))
+          writeLines(paste0("Rounding ", tblx, " columns: ", paste0(xrnd, collapse = ", ")))
         x[, (xrnd) := lapply(.SD, round, digits = precision), .SDcols = xrnd]
       }
 
       if (length(yrnd) > 0) {
-        writeLines(paste0("Rounding ", tbly, " columns: ", paste0(yrnd, collapse = ", ")))
+        if (isTRUE(verbose))
+          writeLines(paste0("Rounding ", tbly, " columns: ", paste0(yrnd, collapse = ", ")))
         y[, (yrnd) := lapply(.SD, round, digits = precision), .SDcols = yrnd]
       }
 
@@ -112,8 +117,71 @@ dt_compare <- function(x, y, compare = NULL, func = `-`, precision = 6, ...){
     nm <- cv$cnames[ix]
     comp[, (nm) := csmtools::dt_reduce(DT = comp, FUN = func, xnm, ynm)]
   }
-  writeLines("\n-- Summaries -----------\n")
-  print(comp[, summary(.SD), .SDcols = (cv$cnames)])
 
-  return(comp)
+  if (isTRUE(verbose)) {
+    writeLines("\n-- Summaries -----------\n")
+    print(comp[, summary(.SD), .SDcols = (cv$cnames)])
+  }
+
+  if (isTRUE(plot)) {
+    if (!requireNamespace("dplyr", quietly = TRUE)) {
+      stop("`dplyr` needed for this function to work. Please install it.", call. = FALSE)
+    }
+
+    if (!requireNamespace("ggplot2", quietly = TRUE)) {
+      stop("`ggplot2` needed for this function to work. Please install it.", call. = FALSE)
+    }
+
+    if (!requireNamespace("ggthemes", quietly = TRUE)) {
+      stop("`ggthemes` needed for this function to work. Please install it.", call. = FALSE)
+    }
+
+    if (!requireNamespace("scales", quietly = TRUE)) {
+      stop("`scales` needed for this function to work. Please install it.", call. = FALSE)
+    }
+
+    good_bad_count <- function(x, precision = 4) {
+      n <- length(x)
+      good_n <- sum(x, na.rm = TRUE) / n
+      na_n <- sum(is.na(x)) / n
+      bad_n <- 1 - good_n - na_n
+
+      data.table::data.table(
+        type = c("identical", "na", "non-identical"),
+        individ = c(good_n, na_n, bad_n),
+        cuml = c(1, na_n + bad_n, bad_n))
+    }
+
+    calc <- new.env()
+    null_dev <- dplyr::select(comp, dplyr::intersect(dplyr::ends_with(".y"), dplyr::contains(".x_"))) %>%
+      .[, {assign("plot_dat", lapply(.SD, good_bad_count), envir = calc); NULL}, .SDcols = colnames(.)]
+
+    plotd <- calc$plot_dat %>%
+      data.table::rbindlist(idcol = "column") %>%
+      transform(
+        column = factor(gsub("(.*)\\.x_(.*)\\.y", "\\1", column)),
+        type = factor(type, levels = c("identical", "na", "non-identical")),
+        individ = round(individ, 4))
+
+    plotd <- plotd[rev(order(type))]
+
+    badd <- plotd[individ > 0 & type %in% c("non-identical", "na")]
+
+    p <- ggplot2::ggplot(plotd, ggplot2::aes(column, individ)) +
+      ggplot2::geom_bar(ggplot2::aes(fill = type), stat = "identity") +
+      ggplot2::labs(x = "", y = "", fill = "") +
+      ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(5),
+                                  labels = scales::percent) +
+      ggthemes::theme_tufte(ticks = FALSE) +
+      ggplot2::geom_errorbar(data = badd,
+                             ggplot2::aes(x = column, ymax = cuml, ymin = cuml), colour = "white", lwd = 1) +
+      ggplot2::scale_fill_manual(values = c("identical" = "#CCCCCC", "na" = "#999999", "non-identical" = "#666666"))
+
+    rm(calc)
+
+    return(list(comp = comp, p = p))
+  } else {
+    return(list(comp = comp, p = NULL))
+  }
+
 }

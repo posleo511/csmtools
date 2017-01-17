@@ -2,7 +2,7 @@
 
 ***
 
-## **csmtools 1.4.0-2**
+## **csmtools 1.4.0-4**
 
 #### *New Features*
 
@@ -14,11 +14,16 @@ A suite of SAS macros to help with the Syndicated Trip Typing
 * [tripmeans](inst/SAS/read_tripmeans.sas)
 * [outletfreq](inst/SAS/read_outletfreq.sas)
 
+A function to read tables with accompanying meta tables (as are common output from [dlm_dump.sas](SAS/dlm_dump.sas) SAS macro statements)
+
+* [mread](R/mread.R)
+
 #### *Minor Fixes*
 
 * Fixed deprecated hive map-reduce parameters in the [hive config script](hive/hive_base_config.hql)
 * Fixed the SAS variable length for the data type of the column in the R-meta section of the [dlm_dump.sas](SAS/dlm_dump.sas)
 * [dreads](R/dreads.R) now can read hive default tables (automatically replaces unprintable char sep with pipe delim)
+* Plot functionality added to [dt_compare](R/dt_compare.R)
 
 ***
 

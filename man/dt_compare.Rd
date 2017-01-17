@@ -4,7 +4,8 @@
 \alias{dt_compare}
 \title{Merge and compare columns of data.frames (data.tables)}
 \usage{
-dt_compare(x, y, compare = NULL, func = `-`, precision = 6, ...)
+dt_compare(x, y, compare = NULL, func = `-`, precision = 6,
+  verbose = TRUE, plot = TRUE, ...)
 }
 \arguments{
 \item{x}{A data.frame}
@@ -18,6 +19,11 @@ for the datatypes of the columns}
 
 \item{precision}{The precision of the comparison, is the \code{digits}
 argument to the \code{\link[base]{round}} function}
+
+\item{verbose}{A boolean, should messages be written to the window?}
+
+\item{plot}{A boolean, should a summary plot be produced? Requires the loading
+of additional packages}
 
 \item{...}{Any arguments to the \code{\link[data.table]{merge}} function}
 }
