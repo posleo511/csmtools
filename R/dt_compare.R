@@ -5,6 +5,7 @@
 #' @param compare A character string or vector of shared column names
 #' @param func A binary function to compare the columns with, should be appropriate
 #'    for the datatypes of the columns
+#' @param round A boolean, should we round at all?
 #' @param precision The precision of the comparison, is the \code{digits}
 #'    argument to the \code{\link[base]{round}} function
 #' @param verbose A boolean, should messages be written to the window?
@@ -24,7 +25,7 @@
 #' # can specify any arguments to 'merge'
 #' res <- dt_compare(x, y, compare = c("Sepal.Width", "Sepal.Length"), by = "id", all.y = TRUE)
 #' @export
-dt_compare <- function(x, y, compare = NULL, func = `-`, precision = 6, verbose = TRUE, plot = TRUE, ...){
+dt_compare <- function(x, y, compare = NULL, func = `-`, round = TRUE, precision = 6, verbose = TRUE, plot = TRUE, ...){
 
   if (!requireNamespace("data.table", quietly = TRUE)) {
     stop("`data.table` needed for this function to work. Please install it.", call. = FALSE)
@@ -76,7 +77,7 @@ dt_compare <- function(x, y, compare = NULL, func = `-`, precision = 6, verbose 
       stop("Invalid 'compare' choice! Not present in one or more sets.")
     }
 
-    if (!is.null(precision)) {
+    if (!is.null(precision) & isTRUE(round)) {
 
 
       xclass <- sapply(x, class)

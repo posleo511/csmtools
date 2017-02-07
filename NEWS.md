@@ -18,6 +18,10 @@ A function to read tables with accompanying meta tables (as are common output fr
 
 * [mread](R/mread.R)
 
+A script to facilitate dropping many hive schemas/tables at once.
+
+* [schema_dropper.sh](inst/bash/schema_dropper.sh)
+
 #### *Minor Fixes*
 
 * Fixed deprecated hive map-reduce parameters in the [hive config script](hive/hive_base_config.hql)

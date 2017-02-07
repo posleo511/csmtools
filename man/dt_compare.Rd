@@ -4,8 +4,8 @@
 \alias{dt_compare}
 \title{Merge and compare columns of data.frames (data.tables)}
 \usage{
-dt_compare(x, y, compare = NULL, func = `-`, precision = 6,
-  verbose = TRUE, plot = TRUE, ...)
+dt_compare(x, y, compare = NULL, func = `-`, round = TRUE,
+  precision = 6, verbose = TRUE, plot = TRUE, ...)
 }
 \arguments{
 \item{x}{A data.frame}
@@ -16,6 +16,8 @@ dt_compare(x, y, compare = NULL, func = `-`, precision = 6,
 
 \item{func}{A binary function to compare the columns with, should be appropriate
 for the datatypes of the columns}
+
+\item{round}{A boolean, should we round at all?}
 
 \item{precision}{The precision of the comparison, is the \code{digits}
 argument to the \code{\link[base]{round}} function}

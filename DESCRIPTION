@@ -15,4 +15,7 @@ Imports: data.table,
     ggthemes,
     scales
 Suggests: testthat,
-    covr
+    covr,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
