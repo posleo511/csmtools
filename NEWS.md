@@ -2,7 +2,7 @@
 
 ***
 
-## **csmtools 1.4.0-4**
+## **csmtools 1.4.0-5**
 
 #### *New Features*
 
@@ -21,6 +21,11 @@ A function to read tables with accompanying meta tables (as are common output fr
 A script to facilitate dropping many hive schemas/tables at once.
 
 * [schema_dropper.sh](inst/bash/schema_dropper.sh)
+
+Two functions to streamline converting UPCs to their component parts and back
+
+* [make_upc](R/upc.R)
+* [split_upc](R/upc.R)
 
 #### *Minor Fixes*
 

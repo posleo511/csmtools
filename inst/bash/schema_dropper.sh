@@ -13,6 +13,10 @@ trap "rm $tmpfile $cmdfile" EXIT
 # create the command file by parsing each line in the incoming file to two
 # separate lines; one echoing the table/schema name and one executing the drop
 command_file() {
+  if [[ -f $1 ]]; then
+    rm $1
+  fi
+
   if [[ "${drop_type}" == "table" ]]; then
     echo "USE ${schema_name};" > $1
     casc=""
