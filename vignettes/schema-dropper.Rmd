@@ -1,0 +1,34 @@
+---
+title: "Dropping Hive schemas with regex expressions"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Dropping Hive schemas with regex expressions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Motivation
+
+The Hive CLI annoyingly does not allow for the dropping
+of tables or schemas with wild-carding. This functionality may be available in 
+GUIs like HUE but as we've seen at IRI these are not normally installed or are
+quickly deprecated from lack of updates.
+
+The [schema_dropper.sh](../bash/schema_dropper.sh) shell script is an interactive
+workaround to this problem and is simple to use. The script allows you to delete
+tables or schemas (always with `CASCADE`) or just create the `.hql` script that 
+allows manual execution along with a file version of all the names for easy 
+importing into say, R, for further investigation.
+
+## Creating a command file only
+
+Here we will demonstrate creating a `.hql` script that has all the commands
+parsed to delete the schemas matched by the pattern specified.
+
+```{r, eval = FALSE, echo = TRUE}
+bash schema_dropper.sh
+
+
+
+```

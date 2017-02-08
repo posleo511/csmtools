@@ -19,7 +19,3 @@ The full package manual can be viewed in the installation files on your local ma
 
 `/mapr/mapr03r/analytic_users/msmck/usr/local/lib/R/csmtools`
 
-## Contributions
-
-If you are contributing to the package, it would be much appreciated if you followed this [guide](https://github.com/slashsBin/styleguide-git-commit-message) to commit messages to some degree:
-
